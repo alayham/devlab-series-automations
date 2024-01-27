@@ -1,0 +1,226 @@
+---
+- name: Add the devlab user
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: ''
+    username: 'admin'
+    path: 'user'
+    add: 'name={{ username }} password={{ password }} group=full disabled=no'
+  when: recreate | default(false)
+
+- name: Disable the admin user
+  community.routeros.api_modify:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'user'
+    data:
+      - name: admin
+        disabled: true
+
+- name: Get a new trial license
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'system license '
+    cmd: 'renew account={{ mikrotik_username }} password={{ mikrotik_password }} level=p1'
+  when: renew_license | default(false)
+
+- name: Get bridge port information
+  community.routeros.api_info:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'interface bridge port'
+  register: interface_bridge_port
+
+- name: Remove all bridge ports
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'interface bridge port'
+    remove: "{{ item['.id'] }}"
+  loop: '{{ interface_bridge_port.result }}'
+
+- name: Get bridge information
+  community.routeros.api_info:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'interface bridge'
+  register: interface_bridge
+
+- name: Delete the bridge, if it exists
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'interface bridge '
+    remove: "{{ item['.id'] }}"
+  loop: '{{ interface_bridge.result }}'
+
+- name: Add the default bridge
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'interface bridge'
+    add: 'name={{ bridge_name }} disabled=no'
+
+- name: Add the default bridge ports
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'interface bridge port '
+    add: 'bridge={{ bridge_name }} interface={{ item }}'
+  loop: '{{ lan_interfaces }}'
+
+- name: Add the IP Address to the bridge
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip address'
+    add: 'address={{ ip_prefix }}.1/24 interface={{ bridge_name }} disabled=no'
+
+- name: Get dhcp netowrk information
+  community.routeros.api_info:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip dhcp-server network'
+  register: ip_dhcp_server_network
+
+- name: Delete the network, if it exists
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip dhcp-server network'
+    remove: "{{ item['.id'] }}"
+  loop: '{{ ip_dhcp_server_network.result }}'
+
+- name: Get ip pool information
+  community.routeros.api_info:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip pool'
+  register: ip_pool
+
+- name: Remove the pool, if it exists.
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip pool'
+    remove: "{{ item['.id'] }}"
+  loop: '{{ ip_pool.result }}'
+
+- name: Get ip dhcp-server information
+  community.routeros.api_info:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip dhcp-server'
+  register: ip_dhcp_server
+
+- name: Remove the dhcp, if it exists.
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip dhcp-server'
+    remove: "{{ item['.id'] }}"
+  loop: '{{ ip_dhcp_server.result }}'
+
+
+- name: Add the dhcp network
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip dhcp-server network'
+    add: 'address={{ ip_prefix }}.0/24 dns-server={{ dns_server }} gateway={{ ip_prefix }}.1'
+
+- name: Add the pool
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip pool'
+    add: 'name={{ pool_name }} ranges={{ ip_prefix }}.{{ pool_start }}-{{ ip_prefix }}.{{ pool_end }}'
+
+- name: Add the dhcp-server
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip dhcp-server'
+    add: 'address-pool={{ pool_name }} name={{ dhcp_server_name }} interface={{ bridge_name }} authoritative=yes lease-time=08:00:00 disabled=no'
+
+- name: Get nat firewall rules
+  community.routeros.api_info:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip firewall nat'
+  register: ip_firewall_nat
+
+- name: Remove at NAT firewall rules
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip firewall nat'
+    remove: "{{ item['.id'] }}"
+  loop: '{{ ip_firewall_nat.result }}'
+
+- name: Add nat firewall rules
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip firewall nat'
+    add: 'chain=srcnat out-interface={{ wan_interface }} action=masquerade'
+
+- name: Get DHCP lease information
+  community.routeros.api_info:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip dhcp-server lease'
+  register: ip_dhcp_server_lease
+
+- name: Remove any leases
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip dhcp-server lease'
+    remove: "{{ item['.id'] }}"
+  loop: '{{ ip_dhcp_server_lease.result }}'
+
+- name: Add default DHCP leases
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip dhcp-server lease'
+    add: 'server={{ dhcp_server_name }} mac-address={{ mac }}  address={{ ip }}'
+  vars:
+    mac: '{{ mac_prefix }}:{{ "%02d" | format(item / 100) }}:{{ "%02d" | format(item % 100) }}'
+    ip: '{{ ip_prefix }}.{{ item }}'
+  loop: '{{ range(reservation_start, reservation_end + 1, 1) | list }}'
+
+- name: Add DHCP leases
+  community.routeros.api:
+    hostname: '{{ hostname }}'
+    password: '{{ password }}'
+    username: '{{ username }}'
+    path: 'ip dhcp-server lease'
+    add: 'server={{ dhcp_server_name }} mac-address={{ item.mac }} address={{ ip_prefix }}.{{ item.ip }}'
+  loop: "{{ leases }}"

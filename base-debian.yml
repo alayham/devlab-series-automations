@@ -1,0 +1,7 @@
+---
+- name: Configure the hosts
+  hosts: base
+  vars_files:
+    - vaults/vault.yml
+  roles:
+    - base_debian

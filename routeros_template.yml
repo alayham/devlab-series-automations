@@ -1,0 +1,47 @@
+---
+- name: Download the disk image
+  hosts: main_pve
+  vars_files:
+    - vars/main-pve.yml
+    - vaults/vault.yml
+    - vars/routeros.yml
+  vars:
+    version: '{{ routeros_template_version }}'
+    download: true
+  tasks:
+    - name: Install unzip
+      ansible.builtin.apt:
+        name: unzip
+
+    - name: Get the image
+      ansible.builtin.unarchive:
+        remote_src: true
+        src: 'https://download.mikrotik.com/routeros/{{ version }}/chr-{{ version }}.img.zip'
+        dest: /tmp
+      when: download
+
+- name: Create the RouterOS template
+  hosts:
+    - localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - vars/main-pve.yml
+    - vaults/vault.yml
+    - vars/routeros.yml
+  vars:
+    template_name: '{{ routeros_template_name }}'
+    vmid: '{{ routeros_template_vmid }}'
+    version: '{{ routeros_template_version }}'
+    disk_image: '/tmp/chr-{{ version }}.img'
+    memory: '{{ routeros_template_memory }}'
+    interfaces: '{{ rotueros_template_interfaces }}'
+    resize: '{{ routeros_template_disk_resize }}'
+    disk: '{{ routeros_template_disk_device }}'
+    storage: '{{ routeros_template_disk_storage }}'
+    recreate: true
+  roles:
+    - role: pve_purge
+      when: recreate
+    - role: pve_vm_template
+      when: recreate

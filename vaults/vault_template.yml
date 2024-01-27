@@ -1,0 +1,22 @@
+pve_api_user: root@pam
+pve_api_password: password
+pve_container_password: password
+
+routeros_devlab_username: devlab
+routeros_devlab_password: devlab
+
+mikrotik_username: name@example.com
+mikrotik_password: password
+
+# User passwords must be hashed. See
+# https://docs.ansible.com/ansible/latest/reference_appendices/faq.html#how-do-i-generate-encrypted-passwords-for-the-user-module
+# The template password is: password
+dev_user_name: dev
+dev_user_password: $6$mysecretsalt$MIJffjeQyfrKKrGkprGrDL/g2mCJa53koLmYQuuLmY9y37pDvGKPXU1Ov3RbMi.tpQ9cWvxAzUVtBLe7KrZoU.
+ansible_user_name: ansible
+ansible_user_password: $6$mysecretsalt$MIJffjeQyfrKKrGkprGrDL/g2mCJa53koLmYQuuLmY9y37pDvGKPXU1Ov3RbMi.tpQ9cWvxAzUVtBLe7KrZoU.
+
+# Gitlab requires complex passwords. Install fails with simple passwords.
+gitlab_root_password: 'RMaYCcxcl0PqAykRsI3eR77cNdyB4MoJ'
+gitlab_user_name: devlab
+gitlab_user_password: 'RMaYCcxcl0PqAykRsI3eR77cNdyB4MoJ'

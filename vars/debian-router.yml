@@ -1,0 +1,5 @@
+vmid: 222
+hostname: debian-router
+pve_lxc_networks:
+  net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=02:00:00:00:02:22"
+  net1: "name=eth100,bridge=vmbr100,ip=192.168.100.2/24,firewall=1"

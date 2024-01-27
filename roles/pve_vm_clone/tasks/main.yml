@@ -1,0 +1,38 @@
+---
+- name: Clone the vm template
+  community.general.proxmox_kvm:
+    node: "{{ pve_api_node }}"
+    api_user: "{{ pve_api_user }}"
+    api_password: "{{ pve_api_password }}"
+    api_host: "{{ pve_api_host }}"
+    target: "{{ pve_api_node }}"
+    clone: "{{ template_name }}"
+    name: "{{ vmname }}"
+    newid: "{{ vmid }}"
+    storage: local
+    full: true
+
+- name: Update network interfaces
+  community.general.proxmox_nic:
+    api_user: "{{ pve_api_user }}"
+    api_password: "{{ pve_api_password }}"
+    api_host: "{{ pve_api_host }}"
+    vmid: "{{ vmid }}"
+    interface: '{{ item.interface }}'
+    bridge: '{{ item.bridge }}'
+    mac: "{{ item.hwaddr }}"
+    firewall: '{{ item.firewall }}'
+  loop: '{{ network }}'
+
+- name: Start the vm
+  community.general.proxmox_kvm:
+    node: "{{ pve_api_node }}"
+    api_user: "{{ pve_api_user }}"
+    api_password: "{{ pve_api_password }}"
+    api_host: "{{ pve_api_host }}"
+    vmid: "{{ vmid }}"
+    state: started
+
+- name: Wait for the vm.
+  ansible.builtin.wait_for:
+    timeout: 15

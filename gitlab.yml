@@ -1,0 +1,41 @@
+---
+- name: Build the container
+  hosts:
+    - localhost
+  vars_files:
+    - vars/devlab-pve.yml
+    - vaults/vault.yml
+    - vars/gitlab.yml
+  roles:
+    - role: pve_purge
+      when: recreate | default(false)
+    - role: pve_lxc_create
+      when: recreate | default(false)
+
+- name: Enable ssh
+  hosts: devlab_pve
+  vars_files:
+    - vars/devlab.yml
+    - vars/gitlab.yml
+  roles:
+    - role: pve_lxc_enable_sshd
+      when: recreate | default(false)
+
+- name: Setup the base system
+  hosts: gitlab
+  vars_files:
+    - vars/devlab-pve.yml
+    - vaults/vault.yml
+    - vars/gitlab.yml
+  roles:
+    - role: gitlab
+      when: recreate | default(false)
+
+- name: Configure gitlab
+  hosts: localhost
+  vars_files:
+    - vars/devlab-pve.yml
+    - vaults/vault.yml
+    - vars/gitlab.yml
+  roles:
+    - gitlab_config

@@ -1,0 +1,5 @@
+vmid: 112
+hostname: devenv2-fedora
+pve_lxc_ostemplate: 'local:vztmpl/fedora-39-default_20231118_amd64.tar.xz'
+pve_lxc_networks:
+  net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=12:00:00:00:01:12"

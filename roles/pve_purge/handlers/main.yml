@@ -1,0 +1,4 @@
+---
+- name: Wait for VM to stop
+  ansible.builtin.wait_for:
+    timeout: 15

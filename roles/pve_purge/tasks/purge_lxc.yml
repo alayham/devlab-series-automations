@@ -1,0 +1,19 @@
+---
+- name: Stop the container
+  community.general.proxmox:
+    node: "{{ pve_api_node }}"
+    api_user: "{{ pve_api_user }}"
+    api_password: "{{ pve_api_password }}"
+    api_host: "{{ pve_api_host }}"
+    vmid: "{{ vmid }}"
+    state: stopped
+
+- name: Purge the container
+  community.general.proxmox:
+    node: "{{ pve_api_node }}"
+    api_user: "{{ pve_api_user }}"
+    api_password: "{{ pve_api_password }}"
+    api_host: "{{ pve_api_host }}"
+    vmid: "{{ vmid }}"
+    state: absent
+    purge: true

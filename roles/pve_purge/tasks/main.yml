@@ -1,0 +1,17 @@
+---
+- name: Get guest info to check whether the vmid exists.
+  community.general.proxmox_vm_info:
+    node: "{{ pve_api_node }}"
+    api_user: "{{ pve_api_user }}"
+    api_password: "{{ pve_api_password }}"
+    api_host: "{{ pve_api_host }}"
+    vmid: "{{ vmid }}"
+  register: guest_info
+
+- name: Purge the VM
+  ansible.builtin.include_tasks: purge_qemu.yml
+  when: guest_info.proxmox_vms and guest_info.proxmox_vms[0].type == 'qemu'
+
+- name: Purge the container
+  ansible.builtin.include_tasks: purge_lxc.yml
+  when: guest_info.proxmox_vms and guest_info.proxmox_vms[0].type == 'lxc'

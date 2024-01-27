@@ -1,0 +1,8 @@
+---
+- name: Purge
+  hosts: localhost
+  vars_files:
+    - vars/devlab-pve.yml
+    - vaults/vault.yml
+  roles:
+    - pve_purge

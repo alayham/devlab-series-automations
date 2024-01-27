@@ -1,0 +1,11 @@
+---
+- name: Recreate
+  hosts: localhost
+  vars_files:
+    - vars/devlab-pve.yml
+    - vaults/vault.yml
+  roles:
+    - pve_purge
+    - role: pve_lxc_create
+      vars:
+        pve_lxc_ostemplate: 'local:vztmpl/fedora-39-default_20231118_amd64.tar.xz'

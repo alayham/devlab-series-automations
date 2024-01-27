@@ -1,0 +1,53 @@
+#
+# RouterOS Template
+#
+routeros_template_version: 7.13.3
+routeros_template_vmid: 10000
+routeros_template_name: rotueros
+routeros_template_memory: 1024
+routeros_template_disk_resize: +512M
+routeros_template_disk_storage: local
+rotueros_template_interfaces:
+  - interface: net0
+    bridge: vmbr0
+    firewall: 1
+  - interface: net1
+    bridge: vmbr100
+    firewall: 1
+routeros_template_disk_device: ide0
+
+#
+# The Devlab router
+#
+routeros_devlab_vmid: 225
+routeros_devlab_name: devlab-router
+routeros_devlab_interfaces:
+  - interface: net0
+    bridge: vmbr0
+    firewall: true
+    hwaddr: '02:00:00:00:02:25'
+  - interface: net1
+    bridge: vmbr100
+    firewall: 1
+    hwaddr: '12:00:00:00:00:01'
+routeros_devlab_hostname: 192.168.1.225
+routeros_devlab_bridge_name: LAN
+routeros_devlab_lan_interfaces:
+  - ether2
+routeros_devlab_wan_interface: ether1
+routeros_devlab_ip_prefix: '192.168.100'
+routeros_devlab_mac_prefix: '12:00:00:00'
+routeros_devlab_dns_resolver: 192.168.1.253
+routeros_devlab_pool_name: devlab
+routeros_devlab_pool_start: 20
+routeros_devlab_pool_end: 50
+routeros_devlab_reservation_start: 100
+routeros_devlab_reservation_end: 254
+routeros_devlab_dhcp_server_name: devlab
+routeros_devlab_dhcp_leases:
+  - mac: '12:00:00:00:00:10'
+    ip: '10'
+  - mac: '12:00:00:00:00:90'
+    ip: '90'
+  - mac: '12:00:00:00:00:99'
+    ip: '99'

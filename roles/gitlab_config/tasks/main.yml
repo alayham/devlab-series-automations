@@ -1,0 +1,34 @@
+---
+- name: "Create GitLab Group"
+  community.general.gitlab_group:
+    api_url: '{{ gitlab_url }}'
+    api_username: root
+    api_password: '{{ gitlab_root_password }}'
+    name: '{{ item.name }}'
+    path: '{{ item.path }}'
+    visibility: '{{ item.visibility }}'
+    project_creation_level: maintainer
+    state: present
+  loop: '{{ gitlab_groups }}'
+
+- name: "Create GitLab User"
+  community.general.gitlab_user:
+    api_url: '{{ gitlab_url }}'
+    api_username: root
+    api_password: '{{ gitlab_root_password }}'
+    name: '{{ gitlab_user_name }}'
+    username: '{{ gitlab_user_name }}'
+    password: '{{ gitlab_user_password }}'
+    email: devlab@example.com
+    state: present
+
+- name: "Create repositories"
+  community.general.gitlab_project:
+    api_url: '{{ gitlab_url }}'
+    api_username: root
+    api_password: '{{ gitlab_root_password }}'
+    name: '{{ item.name }}'
+    path: '{{ item.path }}'
+    group: '{{ item.group }}'
+    visibility: '{{ item.visibility }}'
+  loop: '{{ gitlab_projects }}'
