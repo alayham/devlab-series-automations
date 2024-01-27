@@ -1,0 +1,46 @@
+---
+# See https://canutethegreat.medium.com/portable-devops-platform-gitlab-in-an-lxd-container-db2850224caf
+- name: Enable changing kernel values
+  ansible.posix.mount:
+    path: /proc/sys
+    state: remounted
+    opts: rw
+
+- name: Install packages
+  ansible.builtin.dnf:
+    name: '{{ item }}'
+  loop:
+    - curl
+    - policycoreutils
+    - openssh-server
+    - perl
+    - postfix
+
+- name: Enable services
+  ansible.builtin.systemd_service:
+    name: '{{ item }}'
+    enabled: true
+    state: started
+  loop:
+    - sshd
+    - postfix
+
+- name: Download the setup script
+  ansible.builtin.get_url:
+    url: https://packages.gitlab.com/install/repositories/gitlab/{{ gitlab_edition }}/script.rpm.sh
+    dest: /tmp/gitlab.setup.sh
+    owner: root
+    group: root
+    mode: u=rwx,g=rx,o=rx
+
+- name: Execute the setup script
+  ansible.builtin.raw: "/tmp/gitlab.setup.sh"
+  changed_when: true
+
+- name: Install gitlab
+  ansible.builtin.package:
+    name: "{{ gitlab_edition }}"
+  environment:
+    EXTERNAL_URL: "{{ gitlab_url }}"
+    GITLAB_ROOT_PASSWORD: "{{ gitlab_root_password }}"
+    LETSENCRYPT: "false"

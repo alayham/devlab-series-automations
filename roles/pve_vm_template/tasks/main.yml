@@ -1,0 +1,67 @@
+---
+- name: Create the VM
+  community.general.proxmox_kvm:
+    node: '{{ pve_api_node }}'
+    api_user: '{{ pve_api_user }}'
+    api_password: '{{ pve_api_password }}'
+    api_host: '{{ pve_api_host }}'
+    name: '{{ template_name }}'
+    vmid: '{{ vmid }}'
+    memory: '{{ memory }}'
+    vga: qxl
+    scsihw: virtio-scsi-single
+
+- name: Create network interaces
+  community.general.proxmox_nic:
+    api_user: '{{ pve_api_user }}'
+    api_password: '{{ pve_api_password }}'
+    api_host: '{{ pve_api_host }}'
+    vmid: '{{ vmid }}'
+    interface: '{{ item.interface }}'
+    bridge: '{{ item.bridge }}'
+    firewall: '{{ item.firewall | default(true) }}'
+  loop: '{{ interfaces | default([]) }}'
+
+- name: Attach the disk image
+  community.general.proxmox_disk:
+    api_user: '{{ pve_api_user }}'
+    api_password: '{{ pve_api_password }}'
+    api_host: '{{ pve_api_host }}'
+    vmid: '{{ vmid }}'
+    disk: '{{ disk }}'
+    import_from: '{{ disk_image }}'
+    storage: '{{ storage }}'
+    format: qcow2
+    ssd: true
+    discard: true
+
+- name: Resize the disk image
+  community.general.proxmox_disk:
+    api_user: '{{ pve_api_user }}'
+    api_password: '{{ pve_api_password }}'
+    api_host: '{{ pve_api_host }}'
+    vmid: '{{ vmid }}'
+    state: resized
+    disk: '{{ disk }}'
+    size: '{{ resize }}'
+
+- name: Boot from the new disk
+  community.general.proxmox_kvm:
+    node: '{{ pve_api_node }}'
+    api_user: '{{ pve_api_user }}'
+    api_password: '{{ pve_api_password }}'
+    api_host: '{{ pve_api_host }}'
+    vmid: '{{ vmid }}'
+    update: true
+    boot: 'order={{ disk }}'
+
+- name: Convert to template
+  community.general.proxmox_kvm:
+    node: '{{ pve_api_node }}'
+    api_user: '{{ pve_api_user }}'
+    api_password: '{{ pve_api_password }}'
+    api_host: '{{ pve_api_host }}'
+    vmid: '{{ vmid }}'
+    state: template
+    force: true
+    update: true

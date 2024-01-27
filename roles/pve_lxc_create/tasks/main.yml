@@ -1,0 +1,35 @@
+---
+- name: Create a container
+  community.general.proxmox:
+    node: "{{ pve_api_node }}"
+    api_user: "{{ pve_api_user }}"
+    api_password: "{{ pve_api_password }}"
+    api_host: "{{ pve_api_host }}"
+    vmid: "{{ vmid }}"
+    hostname: "{{ hostname }}"
+    password: "{{ pve_container_password }}"
+    pubkey: "{{ pve_lxc_public_key }}"
+    ostemplate: "{{ pve_lxc_ostemplate }}"
+    cores: "{{ pve_lxc_cores }}"
+    memory: "{{ pve_lxc_memory }}"
+    swap: 0
+    disk: "{{ pve_lxc_storage }}:{{ pve_lxc_disk }}"
+    netif: '{{ pve_lxc_networks }}'
+    timeout: 30
+    onboot: "{{ pve_lxc_autostart_onboot }}"
+    state: present
+    unprivileged: "{{ pve_lxc_unpriviliged }}"
+    nameserver: "{{ pve_lxc_nameserver }}"
+    features:
+      - "nesting=1"
+
+- name: Start the container
+  community.general.proxmox:
+    node: "{{ pve_api_node }}"
+    api_user: "{{ pve_api_user }}"
+    api_password: "{{ pve_api_password }}"
+    api_host: "{{ pve_api_host }}"
+    vmid: "{{ vmid }}"
+    state: started
+  notify:
+    - Wait for the container to start

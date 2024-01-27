@@ -1,0 +1,7 @@
+---
+- name: Install openssh-server
+  ansible.builtin.raw: 'pct exec {{ vmid }} -- {{ item }}'
+  changed_when: true
+  loop:
+    - dnf install openssh-server -y
+    - systemctl enable sshd --now

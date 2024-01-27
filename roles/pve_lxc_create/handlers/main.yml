@@ -1,0 +1,4 @@
+---
+- name: Wait for the container to start
+  ansible.builtin.wait_for:
+    timeout: 1

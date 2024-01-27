@@ -1,0 +1,29 @@
+#
+# This file contains the defaults used to automate the devlab.
+#
+
+# The IP or DNS name of your PVE API host we want to connect to by default.
+pve_api_host: 192.168.1.99
+# The proxmox node we want to operate on by default
+pve_api_node: proxmox
+# The default LXC template.
+pve_lxc_ostemplate: 'local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst'
+pve_lxc_cores: 2
+# The Ram size in MB
+pve_lxc_memory: 1024
+# The size of the first disk partition, in GB
+pve_lxc_disk: 4
+pve_lxc_storage: local
+# This should include the SSH public key of the ansible controller
+pve_lxc_public_key: >
+  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOJVqUbvrJyOzi6UKuRxAhuhecXiIM/9d6h9IVRnsr3N root@ansible
+
+  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyYiv2EJApY8p6ckYMKiSrNwFylQawODpGoHHrlC6fe al@desktop
+
+  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA/UUYPQneD5bFS61NfrxARq9RGnKTlm+jDz4tP5Y0LU root@ansible-debian
+pve_lxc_networks:
+  net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1"
+pve_lxc_unpriviliged: true
+pve_lxc_autostart_onboot: true
+pve_lxc_start: true
+pve_lxc_nameserver: 192.168.1.253

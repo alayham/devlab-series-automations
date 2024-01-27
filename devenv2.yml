@@ -1,0 +1,10 @@
+---
+- name: Recreate the devenv
+  hosts: localhost
+  vars_files:
+    - vars/devlab-pve.yml
+    - vaults/vault.yml
+    - vars/devenv2.yml
+  roles:
+    - pve_purge
+    - pve_lxc_create

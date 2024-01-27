@@ -1,0 +1,38 @@
+---
+- name: Create the RouterOs VM
+  hosts:
+    - localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - vars/main-pve.yml
+    - vaults/vault.yml
+    - vars/routeros.yml
+  vars:
+    template_name: "{{ routeros_template_name }}"
+    vmid: "{{ routeros_devlab_vmid }}"
+    vmname: '{{ routeros_devlab_name }}'
+    network: '{{ routeros_devlab_interfaces }}'
+    hostname: '{{ routeros_devlab_hostname }}'
+    username: '{{ routeros_devlab_username }}'
+    password: '{{ routeros_devlab_password }}'
+    bridge_name: "{{ routeros_devlab_bridge_name }}"
+    comment: "{{ routeros_devlab_default_comment }}"
+    lan_interfaces: "{{ routeros_devlab_lan_interfaces }}"
+    ip_prefix: "{{ routeros_devlab_ip_prefix }}"
+    mac_prefix: "{{ routeros_devlab_mac_prefix }}"
+    dns_server: "{{ routeros_devlab_dns_resolver }}"
+    pool_name: "{{ routeros_devlab_pool_name }}"
+    pool_start: "{{ routeros_devlab_pool_start }}"
+    reservation_start: "{{ routeros_devlab_reservation_start }}"
+    reservation_end: "{{ routeros_devlab_reservation_end }}"
+    pool_end: "{{ routeros_devlab_pool_end }}"
+    dhcp_server_name: "{{ routeros_devlab_dhcp_server_name }}"
+    wan_interface: "{{ routeros_devlab_wan_interface }}"
+    leases: "{{ routeros_devlab_dhcp_leases }}"
+  roles:
+    - role: pve_purge
+      when: recreate | default(false)
+    - role: pve_vm_clone
+      when: recreate | default(false)
+    - routeros

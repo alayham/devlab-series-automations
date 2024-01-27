@@ -1,0 +1,22 @@
+---
+apt_install:
+  - "sudo"
+  - "curl"
+  - "git"
+  - "zip"
+  - "locales-all"
+  - "rsync"
+  - "gnupg"
+  - "python3-openssl"
+apt_remove:
+  - postfix
+ssh_public_keys:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICE8UCqyAHVQD/Kp3aZI0Wvdag9bJyrTuS+gghqHV3eX dev@desktop
+ssh_expired_public_keys: []
+blocked_hosts:
+  - "127.0.0.1      mobile.pipe.aria.microsoft.com"
+  - "::1            mobile.pipe.aria.microsoft.com"
+  - "127.0.0.1      g.msn.com"
+  - "127.0.0.1      g.live.com"
+default_aliases:
+  - alias ll="/usr/bin/ls --color=auto -alF"

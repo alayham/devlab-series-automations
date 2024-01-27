@@ -1,0 +1,22 @@
+---
+- name: Stop the vm
+  community.general.proxmox_kvm:
+    node: "{{ pve_api_node }}"
+    api_user: "{{ pve_api_user }}"
+    api_password: "{{ pve_api_password }}"
+    api_host: "{{ pve_api_host }}"
+    vmid: "{{ vmid }}"
+    state: stopped
+  notify: Wait for VM to stop
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Purge the vm
+  community.general.proxmox_kvm:
+    node: "{{ pve_api_node }}"
+    api_user: "{{ pve_api_user }}"
+    api_password: "{{ pve_api_password }}"
+    api_host: "{{ pve_api_host }}"
+    vmid: "{{ vmid }}"
+    state: absent

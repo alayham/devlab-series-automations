@@ -1,0 +1,39 @@
+vmid: 100
+hostname: gitlab-ce
+pve_lxc_ostemplate: 'local:vztmpl/almalinux-9-default_20221108_amd64.tar.xz'
+pve_lxc_cores: 4
+pve_lxc_memory: 8096
+pve_lxc_disk: 16
+pve_lxc_unpriviliged: false
+pve_lxc_networks:
+  net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=12:00:00:00:01:00"
+
+gitlab_url: 'http://192.168.100.100'
+gitlab_edition: 'gitlab-ce'
+gitlab_groups:
+  - name: Internal projects
+    path: internal
+    visibility: internal
+    description: Internal projects.
+  - name: External projects
+    path: external
+    visibility: public
+    description: Public projects.
+gitlab_projects:
+  - name: Devlab Series Automations
+    path: devlab-series-automations
+    group: external
+    visibility: public
+    description: The Ansible code for the devlab Series
+
+  - name: Devlab Series snippets
+    path: devlab-series-snippets
+    group: external
+    visibility: public
+    description: Snippets and various scripts used in the Devlab series
+
+  - name: Devlab Series Private Code
+    path: devlab-series-private
+    group: internal
+    visibility: private
+    description: private code.
