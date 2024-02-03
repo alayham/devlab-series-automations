@@ -51,3 +51,5 @@ routeros_devlab_dhcp_leases:
     ip: '90'
   - mac: '12:00:00:00:00:99'
     ip: '99'
+  - mac: '12:00:00:00:00:95'
+    ip: '95'

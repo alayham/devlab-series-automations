@@ -1,0 +1,74 @@
+---
+- name: Create a runner on Gitlab
+  ansible.builtin.uri:
+    url: '{{ gitlab_url }}/api/v4/user/runners'
+    method: POST
+    headers:
+      PRIVATE-TOKEN: "{{ gitlab_root_access_token }}"
+    body_format: form-urlencoded
+    body:
+      runner_type: '{{ runner_type }}'
+      tag_list: '{{ runner_tag_list }}'
+      run_untagged: '{{ runner_run_untagged }}'
+  register: runner_creation
+  when: runner_authentication_token is not defined
+  failed_when: runner_creation.json.token is not defined
+
+- name: Show new runner authentication token
+  ansible.builtin.debug:
+    var: runner_creation.json.token
+  when: runner_creation.json.token is defined
+
+- name: Save the authentication token
+  ansible.builtin.set_fact:
+    runner_authentication_token: '{{ runner_creation.json.token }}'
+  when: runner_creation.json.token is defined
+
+- name: Download the runner connector
+  ansible.builtin.get_url:
+    url: https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64
+    dest: /usr/local/bin/gitlab-runner
+    owner: root
+    group: root
+    mode: u=rx,g=rx,o=
+
+- name: Add the runner user
+  ansible.builtin.user:
+    name: gitlab-runner
+    password: "{{ dev_user_password }}"
+    shell: "/bin/bash"
+    comment: 'Gitlab runner'
+    create_home: true
+
+- name: Remove the logout script
+  ansible.builtin.file:
+    path: /home/gitlab-runner/.bash_logout
+    state: absent
+
+- name: Install the runner
+  ansible.builtin.command:
+    cmd: gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
+    creates: /etc/systemd/system/gitlab-runner.service
+
+- name: Overwrite system identification (Hack)
+  ansible.builtin.copy:
+    content: '{{ runner_system_identification }}'
+    dest: /etc/gitlab-runner/.runner_system_id
+    owner: root
+    group: root
+    mode: u=rw,g=,o=
+
+- name: Register the runner
+  ansible.builtin.command:
+    cmd: gitlab-runner register
+  changed_when: true
+  environment:
+    CI_SERVER_URL: '{{ gitlab_url }}'
+    CI_SERVER_TOKEN: '{{ runner_authentication_token }}'
+    REGISTER_NON_INTERACTIVE: 'true'
+    RUNNER_NAME: '{{ runner_instance_name }}'
+    RUNNER_EXECUTOR: '{{ runner_instance_executor }}'
+
+- name: Start the runner
+  ansible.builtin.raw: gitlab-runner start
+  changed_when: false

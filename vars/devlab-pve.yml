@@ -20,7 +20,7 @@ pve_lxc_public_key: >
 
   ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyYiv2EJApY8p6ckYMKiSrNwFylQawODpGoHHrlC6fe al@desktop
 
-  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA/UUYPQneD5bFS61NfrxARq9RGnKTlm+jDz4tP5Y0LU root@ansible-debian
+  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJnJ07MwmeJ++RS3JaPmZ2OjRHzbn/UmA9cVV3GK7WQE devlab@devlab-desktop
 pve_lxc_networks:
   net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1"
 pve_lxc_unpriviliged: true

@@ -1,0 +1,10 @@
+---
+ansible_controller_packages_install:
+  - python3
+  - python3-requests
+  - python3-cryptography
+  - python3-librouteros
+  - python3-proxmoxer
+  - python3-gitlab
+  - ansible
+ansible_controller_packages_remove: []

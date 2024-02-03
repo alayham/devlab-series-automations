@@ -3,8 +3,12 @@ This repository hosts the code for the devlab series by Al Saleh.
 
 The devlab series is published in video and text on the following channels:
 
-- Video: [YouTube](https://www.youtube.com/channel/UCc72YUyKngnBLPpDR14d96g)
-- Articles: [Medium](https://medium.com/@al-saleh)
+- Video: 
+  - [YouTube](https://www.youtube.com/channel/UCc72YUyKngnBLPpDR14d96g)
+  - [Patreon](https://patreon.com/devlab)
+  - [SubscribeStar](https://www.subscribestar.com/devlab)
+- Articles: 
+  - [Medium](https://medium.com/@al-saleh)
 
 More distribution channels will follow.
 
@@ -21,7 +25,6 @@ Many of the tags are available in the series index below
 
 # Series Index
 
-- Not all episodes have a git tag.
 - The first episode with a git tag is S01E06
 - All episodes have at least one copy of the video and one copy of the article
 

@@ -1,0 +1,16 @@
+vmid: 101
+hostname: ansible-runner
+pve_lxc_cores: 4
+pve_lxc_memory: 4096
+pve_lxc_networks:
+  net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=12:00:00:00:01:01"
+
+runner_type: instance_type
+runner_tag_list:
+  - ansible
+runner_run_untagged: false
+
+runner_system_identification: 's_somerunnerid'
+runner_authentication_token: 'glrt-EXATxPsb6FNx7yuz6i9C'
+runner_instance_name: Ansible runner on Debian
+runner_instance_executor: shell

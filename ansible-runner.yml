@@ -1,0 +1,35 @@
+- name: Recreate the ansible runner
+  hosts: localhost
+  vars_files:
+    - vars/devlab-pve.yml
+    - vaults/vault.yml
+    - vars/ansible-runner.yml
+  roles:
+    - role: pve_purge
+      when: recreate is defined and recreate
+    - role: pve_lxc_create
+      when: recreate is defined and recreate
+
+- name: Run the base Debian role
+  hosts: ansible_runner
+  vars_files:
+    - vaults/vault.yml
+  roles:
+    - base_debian
+
+- name: Make it a Gitlab runner
+  hosts: ansible_runner
+  vars_files:
+    - vaults/vault.yml
+    - vars/gitlab.yml
+    - vars/ansible-runner.yml
+  roles:
+    - role: gitlab_runner
+
+- name: Make it an ansible controller
+  hosts: ansible_runner
+  vars_files:
+    - vars/ansible-runner.yml
+  roles:
+    - role: ansible_controller
+      when: recreate is defined and recreate

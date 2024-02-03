@@ -1,0 +1,23 @@
+---
+- name: Install dependencies
+  ansible.builtin.package:
+    name: "{{ item }}"
+  loop: "{{ ansible_controller_packages_install }}"
+
+- name: Remove packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ ansible_controller_packages_remove }}"
+
+- name: Copy ansible requirements file
+  ansible.builtin.copy:
+    src: requirements.yml
+    dest: /tmp/requirements.yml
+    owner: root
+    group: root
+    mode: u=rw,g=rw,o=r
+
+- name: Install ansible requirements
+  ansible.builtin.raw: ansible-galaxy collection install -r /tmp/requirements.yml -p /usr/share/ansible/collections
+  changed_when: true
