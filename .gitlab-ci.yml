@@ -2,7 +2,7 @@ reconfigure_router:
   rules:
     - changes:
       - vars/routeros.yml
-    - if: $CI_COMMIT_BRANCH == 'S01E07'
+    - if: $CI_COMMIT_BRANCH == 'main'
   tags:
     - ansible
   before_script:
