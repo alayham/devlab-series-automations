@@ -20,3 +20,5 @@ ansible_user_password: $6$mysecretsalt$MIJffjeQyfrKKrGkprGrDL/g2mCJa53koLmYQuuLm
 gitlab_root_password: 'RMaYCcxcl0PqAykRsI3eR77cNdyB4MoJ'
 gitlab_user_name: devlab
 gitlab_user_password: 'RMaYCcxcl0PqAykRsI3eR77cNdyB4MoJ'
+
+gitlab_root_access_token: 'get this from gitlab'

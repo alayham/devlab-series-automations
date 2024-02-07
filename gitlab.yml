@@ -15,7 +15,7 @@
 - name: Enable ssh
   hosts: devlab_pve
   vars_files:
-    - vars/devlab.yml
+    - vars/devlab-pve.yml
     - vars/gitlab.yml
   roles:
     - role: pve_lxc_enable_sshd

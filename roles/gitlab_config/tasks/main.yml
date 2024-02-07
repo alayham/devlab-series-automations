@@ -22,6 +22,16 @@
     email: devlab@example.com
     state: present
 
+- name: Add the user to all the groups
+  community.general.gitlab_group_members:
+    api_url: '{{ gitlab_url }}'
+    api_username: root
+    api_password: '{{ gitlab_root_password }}'
+    gitlab_group: '{{ item.path }}'
+    gitlab_user: '{{ gitlab_user_name }}'
+    access_level: owner
+  loop: '{{ gitlab_groups }}'
+
 - name: "Create repositories"
   community.general.gitlab_project:
     api_url: '{{ gitlab_url }}'
