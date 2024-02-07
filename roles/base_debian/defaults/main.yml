@@ -11,7 +11,7 @@ apt_install:
 apt_remove:
   - postfix
 ssh_public_keys:
-  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICE8UCqyAHVQD/Kp3aZI0Wvdag9bJyrTuS+gghqHV3eX dev@desktop
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJnJ07MwmeJ++RS3JaPmZ2OjRHzbn/UmA9cVV3GK7WQE devlab@devlab-desktop
 ssh_expired_public_keys: []
 blocked_hosts:
   - "127.0.0.1      mobile.pipe.aria.microsoft.com"
