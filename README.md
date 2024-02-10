@@ -17,7 +17,7 @@ To clone the latest update of the repo
 ```
 git clone https://github.com/alayham/devlab-series-automations.git
 ```
-To clone a specific tag for a specific episode of the series, for example S01E02
+To clone a specific tag for a specific episode of the series, for example S01E06
 ```
 git clone --branch S01E06 https://github.com/alayham/devlab-series-automations.git
 ```
@@ -49,6 +49,7 @@ I have multiple options to accept support from generous people or organisations.
 
 - The first episode with a git tag is S01E06.
 - All episodes have at least one copy of the video and one copy of the article.
+- The devlab show runs along with the series, and includes commentary, interviews, and general information about the series.
 
 ## Season 1
 | Episode | Tag    | Title | Video | Article | 
