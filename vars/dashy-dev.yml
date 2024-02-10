@@ -1,0 +1,24 @@
+vmid: 120
+hostname: dashy-dev
+pve_lxc_memory: 4096
+pve_lxc_networks:
+  net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=12:00:00:00:01:20"
+
+ssh_public_keys:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJnJ07MwmeJ++RS3JaPmZ2OjRHzbn/UmA9cVV3GK7WQE devlab@devlab-desktop
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOJVqUbvrJyOzi6UKuRxAhuhecXiIM/9d6h9IVRnsr3N root@ansible
+
+nvm_node_version: 16
+nvm_project_repository: https://github.com/Lissy93/dashy.git
+nvm_project_path: ~/dashy
+nvm_project_cleanup: true
+nvm_project_branch: master
+nvm_project_patches:
+  - https://patch-diff.githubusercontent.com/raw/Lissy93/dashy/pull/1454.patch
+  - https://patch-diff.githubusercontent.com/raw/Lissy93/dashy/pull/1460.patch
+nvm_project_snippets:
+  ~/dashy/public/conf.yml: http://192.168.100.100/external/devlab-series-snippets/-/snippets/1/raw/main/conf.yml
+
+nvm_build_commands:
+  - yarn
+  - yarn build
