@@ -1,0 +1,12 @@
+[{{ dev_user_name }}]
+user = {{ dev_user_name }}
+group = {{ dev_user_name }}
+listen = /run/php/php8.2-fpm-{{ dev_user_name }}.sock
+listen.mode = 0666
+listen.owner = {{ dev_user_name }}
+listen.group = {{ dev_user_name }}
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 2
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3

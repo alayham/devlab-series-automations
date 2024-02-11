@@ -1,0 +1,29 @@
+---
+- name: Install packages
+  ansible.builtin.apt:
+    name: '{{ item }}'
+  loop: '{{ lamp_db_default_packages }}'
+
+# Using Debian packages, MariaDB is secure out of the box.
+# No need to run msyql_secure_installation.
+
+- name: Create databases
+  community.mysql.mysql_db:
+    name: '{{ item }}'
+  loop: '{{ lamp_db_databases }}'
+
+- name: Calculate privileges
+  ansible.builtin.set_fact:
+    privileges: '{{ privileges | default({}) | combine(db_priv) }}'
+  loop: '{{ lamp_db_databases }}'
+  vars:
+    db_priv: '{ "{{ item }}.*": "{{ lamp_db_default_privileges }}" }'
+
+- name: Create the user with privileges
+  community.mysql.mysql_user:
+    name: '{{ lamp_db_user_name }}'
+    host: localhost
+    password: '{{ lamp_db_user_password }}'
+    priv: '{{ privileges }}'
+    column_case_sensitive: true
+    state: present

@@ -1,0 +1,56 @@
+vmid: 121
+hostname: drupal-dev
+pve_lxc_memory: 4096
+pve_lxc_networks:
+  net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=12:00:00:00:01:21"
+
+ssh_public_keys:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJnJ07MwmeJ++RS3JaPmZ2OjRHzbn/UmA9cVV3GK7WQE devlab@devlab-desktop
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOJVqUbvrJyOzi6UKuRxAhuhecXiIM/9d6h9IVRnsr3N root@ansible
+
+lamp_db_databases:
+  - drupal
+  - lumen
+
+lamp_server_software: apache2
+
+lamp_php_extra_pachages:
+  - php-redis
+  - php-solr
+  - php-imagick
+  - php-xdebug
+
+lamp_server_sites:
+  - hostname: drupal
+    port: 81
+    composer_project: drupal/recommended-project
+    project_version: 10
+    install_path: /home/dev/drupal
+    document_root: /home/dev/drupal/web
+    snippets: []
+    php_options: |
+      memory_limit = 256M
+    composer_dev_packages:
+      - drupal/core-dev
+    composer_packages:
+      - drush/drush
+      - drupal/perimeter
+    shell_commands:
+      - >
+        vendor/bin/drush si -y --db-url=mysql://dev:password@localhost/drupal
+        --account-name=dev
+        --account-mail=dev@example.com
+        --site-mail=site@example.com
+        --account-pass=password
+        --site-name="Umami Magazine"
+        demo_umami
+  - hostname: lumen
+    port: 82
+    composer_project: laravel/lumen
+    project_version: 10
+    install_path: /home/dev/lumen
+    document_root: /home/dev/lumen/public
+    snippets:
+      .env: http://192.168.100.100/external/devlab-series-snippets/-/snippets/3/raw/main/.env
+    php_options: |
+      memory_limit = 512M

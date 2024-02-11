@@ -22,3 +22,7 @@ gitlab_user_name: devlab
 gitlab_user_password: 'RMaYCcxcl0PqAykRsI3eR77cNdyB4MoJ'
 
 gitlab_root_access_token: 'get this from gitlab'
+
+lamp_db_root_password: password
+lamp_db_user_name: dev
+lamp_db_user_password: password
