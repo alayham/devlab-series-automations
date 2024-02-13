@@ -1,0 +1,48 @@
+---
+lamp_db_default_packages:
+  - mariadb-server
+  - mariadb-client
+  - python3-mysqldb
+
+lamp_db_default_privileges: ALL,GRANT
+
+lamp_php_default_packages:
+  - php-apcu
+  - php-bcmath
+  - php-bz2
+  - php-cli
+  - php-ctype
+  - php-curl
+  - php-dev
+  - php-gnupg
+  - php-dom
+  - php-gd
+  - php-intl
+  - php-mbstring
+  - php-mcrypt
+  - php-mysql
+  - php-opcache
+  - php-soap
+  - php-tidy
+  - php-uploadprogress
+  - php-xml
+  - php-xmlrpc
+  - php-zip
+  - php-pear
+  - php-json
+  - php-fpm
+  - composer
+
+lamp_apache2_default_packages:
+  - apache2
+  - apache2-utils
+  - apachetop
+  - apache2-suexec-pristine
+lamp_apache2_default_modules:
+  - rewrite
+  - proxy_fcgi
+  - setenvif
+  - headers
+  - dir
+  - mime
+  - suexec

@@ -1,0 +1,31 @@
+---
+- name: Install the database
+  ansible.builtin.include_tasks: db.yml
+  when: lamp_db_default_packages is defined and lamp_db_default_packages
+
+- name: Install Apache
+  ansible.builtin.include_tasks: apache2.yml
+  when: lamp_server_software == 'apache2'
+
+- name: Install Nginx
+  ansible.builtin.include_tasks: nginx.yml
+  when: lamp_server_software == 'nginx'
+
+- name: Install PHP
+  ansible.builtin.include_tasks: php.yml
+
+- name: Install the sites
+  ansible.builtin.include_tasks: site.yml
+  loop: '{{ lamp_server_sites }}'
+  loop_control:
+    loop_var: site
+  vars:
+    ansible_user: '{{ dev_user_name }}'
+
+- name: Restart servers
+  ansible.builtin.service:
+    name: '{{ item }}'
+    state: restarted
+  loop:
+    - php8.2-fpm
+    - '{{ lamp_server_software }}'

@@ -1,0 +1,22 @@
+Listen 0.0.0.0:{{ site.port }}
+<VirtualHost *:{{ site.port }}>
+    DocumentRoot {{ site.document_root }}
+    RewriteEngine On
+    RewriteOptions inherit
+    DirectoryIndex index.html index.php
+    ErrorLog ${APACHE_LOG_DIR}/{{ site.hostname }}-error.log
+    CustomLog ${APACHE_LOG_DIR}/{{ site.hostname }}.log combined
+    <IfModule mod_suexec.c>
+        SuexecUserGroup "{{ dev_user_name }}" "{{ dev_user_name }}"
+    </IfModule>
+    <Directory {{ site.document_root }}>
+        Options Indexes MultiViews FollowSymLinks
+        AllowOverride All
+        Require all granted
+        <FilesMatch ".+\.ph(?:ar|p|tml)$">
+            <If "-f %{REQUEST_FILENAME}">
+                SetHandler "proxy:unix:/run/php/php8.2-fpm-{{ dev_user_name }}.sock|fcgi://localhost"
+            </If>
+        </FilesMatch>
+    </directory>
+</VirtualHost>

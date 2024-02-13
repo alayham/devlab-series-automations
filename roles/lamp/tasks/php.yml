@@ -1,0 +1,49 @@
+---
+- name: Install packages
+  ansible.builtin.apt:
+    name: '{{ item }}'
+    state: present
+    install_recommends: false
+  loop: '{{ lamp_php_default_packages + (lamp_php_extra_packages | default([])) }}'
+
+- name: Disable apache modules
+  community.general.apache2_module:
+    name: "{{ item }}"
+    state: absent
+  loop:
+    - php8.2
+  when: lamp_server_software == 'apache2'
+
+- name: Enable php-fpm on apache
+  ansible.builtin.command:
+    cmd: a2enconf php8.2-fpm
+    creates: /etc/apache2/conf-enabled/php8.2-fpm.conf
+  when: lamp_server_software == 'apache2'
+
+- name: Create a php-fpm pool for the dev user
+  ansible.builtin.template:
+    src: pool.conf.j2
+    dest: '/etc/php/8.2/fpm/pool.d/{{ dev_user_name }}.conf'
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+
+- name: Set site configuration
+  ansible.builtin.template:
+    src: php.ini.j2
+    dest: '/etc/php/8.2/fpm/conf.d/{{ site.hostname }}.ini'
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+  loop: '{{ lamp_server_sites }}'
+  loop_control:
+    loop_var: site
+  when: site.php_options is defined and site.php_options
+
+- name: Create phpinfo file
+  ansible.builtin.copy:
+    content: '<?php phpinfo(); ?>'
+    dest: /var/www/html/php.php
+    owner: www-data
+    group: www-data
+    mode: u=rw,g=r,o=r

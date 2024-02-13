@@ -1,0 +1,29 @@
+---
+- name: Recreate the devenv
+  hosts: localhost
+  vars_files:
+    - vars/devlab-pve.yml
+    - vaults/vault.yml
+    - vars/drupal-dev.yml
+  roles:
+    - role: pve_purge
+      when: recreate is defined and recreate
+    - role: pve_lxc_create
+      when: recreate is defined and recreate
+
+- name: Configure the devenv
+  hosts: drupal_dev
+  vars_files:
+    - vaults/vault.yml
+    - vars/drupal-dev.yml
+  roles:
+    - role: base_debian
+      when: recreate is defined and recreate
+
+- name: Make it a lamp devenv
+  hosts: drupal_dev
+  vars_files:
+    - vaults/vault.yml
+    - vars/drupal-dev.yml
+  roles:
+    - role: lamp
