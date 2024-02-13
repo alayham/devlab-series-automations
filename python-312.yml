@@ -1,0 +1,31 @@
+---
+- name: Recreate the devenv
+  hosts: localhost
+  vars_files:
+    - vars/devlab-pve.yml
+    - vaults/vault.yml
+    - vars/python-312.yml
+  roles:
+    - role: pve_purge
+      when: recreate is defined and recreate
+    - role: pve_lxc_create
+      when: recreate is defined and recreate
+
+- name: Enable ssh
+  hosts: devlab_pve
+  vars_files:
+    - vars/devlab-pve.yml
+    - vars/python-312.yml
+  roles:
+    - role: pve_lxc_enable_sshd
+      when: recreate is defined and recreate
+
+- name: Configure the devenv
+  hosts: python_312
+  vars_files:
+    - vaults/vault.yml
+    - vars/python-312.yml
+  roles:
+    - role: base_fedora
+      when: recreate is defined and recreate
+    - role: python_venv
