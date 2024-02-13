@@ -1,0 +1,116 @@
+---
+
+# Update packages
+
+- name: Upgrade all packages.
+  ansible.builtin.dnf:
+    name: '*'
+    state: latest
+    update_only: true
+
+- name: Install packages
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+  loop: "{{ dnf_install }}"
+
+- name: Remove packages
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+    state: absent
+    autoremove: true
+  loop: "{{ dnf_remove }}"
+
+# Create a dev user
+
+- name: Create the dev user
+  ansible.builtin.user:
+    name: "{{ dev_user_name }}"
+    password: "{{ dev_user_password }}"
+    shell: "/bin/bash"
+    generate_ssh_key: true
+    ssh_key_type: ed25519
+    ssh_key_comment: "{{ dev_user_name }}@{{ inventory_hostname_short }}"
+    ssh_key_file: .ssh/id_ed25519
+
+- name: Enable sudo for the dev user
+  ansible.builtin.copy:
+    content: "{{ dev_user_name }} ALL=(ALL) NOPASSWD:ALL"
+    dest: "/etc/sudoers.d/{{ dev_user_name }}"
+    owner: root
+    group: root
+    mode: u=r,g=r,o=
+
+- name: Copy SSH public keys
+  ansible.posix.authorized_key:
+    user: "{{ dev_user_name }}"
+    key: "{{ item }}"
+    state: present
+  loop: "{{ ssh_public_keys }}"
+
+- name: Remove expired public keys
+  ansible.posix.authorized_key:
+    user: "{{ dev_user_name }}"
+    key: "{{ item }}"
+    state: absent
+  loop: "{{ ssh_expired_public_keys }}"
+
+# Create ansible user
+
+- name: Create ansible user
+  ansible.builtin.user:
+    name: "{{ ansible_user_name }}"
+    password: "{{ ansible_user_password }}"
+    shell: "/bin/bash"
+    generate_ssh_key: true
+    ssh_key_type: ed25519
+    ssh_key_comment: "{{ dev_user_name }}@{{ inventory_hostname_short }}"
+    ssh_key_file: .ssh/id_ed25519
+
+
+- name: Add ansible controller ssh key
+  ansible.posix.authorized_key:
+    user: "{{ ansible_user_name }}"
+    key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOJVqUbvrJyOzi6UKuRxAhuhecXiIM/9d6h9IVRnsr3N root@ansible"
+
+- name: Enable sudo for the ansible user
+  ansible.builtin.copy:
+    content: |
+      {{ ansible_user_name }} ALL=(ALL) NOPASSWD:ALL
+    dest: "/etc/sudoers.d/{{ ansible_user_name }}"
+    owner: root
+    group: root
+    mode: u=r,g=r,o=
+
+# Block some hosts
+
+- name: Block some malicious hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: '{{ item }}'
+  loop: '{{ blocked_hosts }}'
+
+# Add default aliases
+
+- name: Add some aliases
+  ansible.builtin.lineinfile:
+    line: "{{ item }}"
+    path: /etc/profile.d/ansible-aliases.sh
+    create: true
+    state: present
+    mode: u=rwx,g=rx,o=rx
+  loop: '{{ default_aliases }}'
+
+# Deploy the root CA, This can be a proxmox root CA
+# or your own root CA.
+# To convert PEM format to CRT use the following command:
+# openssl x509 -outform der -in file.pem -out file.crt
+- name: Copy the devlab CA
+  ansible.builtin.copy:
+    src: '{{ item }}'
+    dest: "/etc/pki/ca-trust/source/anchors/{{ item }}"
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+  loop:
+    - devlab_ca.crt
+    - devlab_ca.pem
