@@ -1,0 +1,98 @@
+---
+- name: Create the directory
+  ansible.builtin.file:
+    path: '{{ ssl_server_cert_path }}'
+    state: directory
+    owner: '{{ ssl_server_user }}'
+    group: '{{ ssl_server_group }}'
+    mode: u=rwx,g=rx,o=rx
+    attributes: '-a'
+
+- name: Create private key without password protection
+  community.crypto.openssl_privatekey:
+    path: '{{ ssl_server_cert_path }}/{{ ssl_server_cert_name }}.key'
+
+- name: Create CSR for intermediate certificate
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: '{{ ssl_server_cert_path }}/{{ ssl_server_cert_name }}.key'
+    common_name: '{{ ssl_server_cert_name }}'
+    subject_alt_name: "{{ ssl_server_subject_alt_names | map('regex_replace', '^', 'DNS:') | list }}"
+  register: csr
+
+
+- name: Sign certificate on the CA host
+  community.crypto.x509_certificate_pipe:
+    csr_content: "{{ csr.csr }}"
+    provider: ownca
+    ownca_path: '{{ ca_intermediate_path }}/{{ ca_root_cert_folder_name }}_intermediate.pem'
+    ownca_privatekey_path: '{{ ca_intermediate_path }}/{{ ca_root_cert_folder_name }}_intermediate.key'
+    ownca_privatekey_passphrase: '{{ ca_intermediate_key_passphrase }}'
+    ownca_not_after: +824d  # see https://support.apple.com/en-us/103769
+    ownca_not_before: "-1d"  # valid since yesterday
+  delegate_to: 192.168.100.110
+  register: signed_cert
+
+- name: Read the signing certificate
+  ansible.builtin.slurp:
+    src: '{{ ca_intermediate_path }}/{{ ca_root_cert_folder_name }}_intermediate.pem'
+  register: signing_cert
+  delegate_to: 192.168.100.110
+
+- name: Read the root certificate
+  ansible.builtin.slurp:
+    src: '{{ ca_root_path }}/{{ ca_root_cert_folder_name }}.pem'
+  register: root_cert
+  delegate_to: 192.168.100.110
+
+- name: Save the signed certificate on the host.
+  ansible.builtin.copy:
+    content: '{{ signed_cert.certificate }}'
+    dest: '{{ ssl_server_cert_path }}/{{ ssl_server_cert_name }}.pem'
+    owner: '{{ ssl_server_user }}'
+    group: '{{ ssl_server_group }}'
+    mode: u=rw,g=r,o=r
+
+- name: Save the signing certificate on the host.
+  ansible.builtin.copy:
+    content: '{{ signing_cert.content | b64decode }}'
+    dest: '{{ ssl_server_cert_path }}/{{ ssl_server_cert_name }}_ca.pem'
+    owner: '{{ ssl_server_user }}'
+    group: '{{ ssl_server_group }}'
+    mode: u=rw,g=r,o=r
+
+- name: Save the root certificate on the host.
+  ansible.builtin.copy:
+    content: '{{ root_cert.content | b64decode }}'
+    dest: '{{ ssl_server_cert_path }}/{{ ca_root_cert_folder_name }}.pem'
+    owner: '{{ ssl_server_user }}'
+    group: '{{ ssl_server_group }}'
+    mode: u=rw,g=r,o=r
+
+- name: Save the signing chain
+  ansible.builtin.copy:
+    content: '{{ signed_cert.certificate }}{{ signing_cert.content | b64decode }}'
+    dest: '{{ ssl_server_cert_path }}/{{ ssl_server_cert_name }}_chain.pem'
+    owner: '{{ ssl_server_user }}'
+    group: '{{ ssl_server_group }}'
+    mode: u=rw,g=r,o=r
+
+- name: Save the full chain
+  ansible.builtin.copy:
+    content: '{{ signed_cert.certificate }}{{ signing_cert.content | b64decode }}{{ root_cert.content | b64decode }}'
+    dest: '{{ ssl_server_cert_path }}/{{ ssl_server_cert_name }}_full.pem'
+    owner: '{{ ssl_server_user }}'
+    group: '{{ ssl_server_group }}'
+    mode: u=rw,g=r,o=r
+
+- name: Generate PKCS12 file
+  community.crypto.openssl_pkcs12:
+    action: export
+    path: '{{ ssl_server_cert_path }}/{{ ssl_server_cert_name }}.p12'
+    friendly_name: "{{ ssl_server_cert_name }}"
+    privatekey_path: '{{ ssl_server_cert_path }}/{{ ssl_server_cert_name }}.key'
+    certificate_path: '{{ ssl_server_cert_path }}/{{ ssl_server_cert_name }}.pem'
+    ca_certificates: '{{ ssl_server_cert_path }}/{{ ssl_server_cert_name }}_full.pem'
+    state: present
+    owner: '{{ ssl_server_user }}'
+    group: '{{ ssl_server_group }}'
+    mode: u=rw,g=r,o=
