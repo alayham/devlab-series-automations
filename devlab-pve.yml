@@ -1,0 +1,27 @@
+---
+- name: PVE Maintenance
+  hosts: devlab_pve
+  vars_files:
+    - vars/devlab-pve.yml
+    - vaults/vault.yml
+  roles:
+    - role: ssl_server
+  tasks:
+    - name: Upgrade all packages
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: full
+    - name: Copy the certificate
+      # ansible.builtin.copy with remote_src does not work here.
+      # see https://forum.proxmox.com/threads/ansible-operation-not-permitted-copying-ssl-keys-directly.88310
+      ansible.builtin.raw: 'cp "{{ item.src }}" "{{ item.dest }}"'
+      loop:
+        - src: /etc/certs/pveproxy-ssl_chain.pem
+          dest: /etc/pve/local/pveproxy-ssl.pem
+        - src: /etc/certs/pveproxy-ssl.key
+          dest: /etc/pve/local/pveproxy-ssl.key
+      changed_when: true
+    - name: Restart PVEProxy
+      ansible.builtin.service:
+        name: pveproxy
+        state: restarted

@@ -26,3 +26,6 @@ gitlab_root_access_token: 'get this from gitlab'
 lamp_db_root_password: password
 lamp_db_user_name: dev
 lamp_db_user_password: password
+
+ca_root_key_passphrase: P32moIzBZ51zG6TlwTUnFQyFY4Ug8LHjri8IPsLBQlcPpaAHFQoikBIkt
+ca_intermediate_key_passphrase: nFWgKMc53WRkE6UjRbBU1OcZD826CbfVhQqQTL4z1e6Un3aYRIhSUYuF3fzEYrsUx8
