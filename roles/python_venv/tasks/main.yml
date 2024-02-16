@@ -1,0 +1,29 @@
+---
+- name: Install the required python version
+  ansible.builtin.package:
+    name: '{{ item }}'
+  loop:
+    - 'python{{ python_venv_version }}'
+
+- name: Create the venv
+  ansible.builtin.command:
+    cmd: 'python{{ python_venv_version }} -m venv {{ python_venv_path }}'
+    creates: '{{ python_venv_path }}'
+  vars:
+    ansible_user: '{{ dev_user_name }}'
+
+- name: Enable the venv for the dev user
+  ansible.builtin.blockinfile:
+    content: |
+      if [ -z "${_OLD_VIRTUAL_PATH:-}" ]
+      then
+        . /home/dev/.venv/bin/activate
+      fi
+    path: '/home/{{ dev_user_name }}/.bash_profile'
+    create: true
+    owner: '{{ dev_user_name }}'
+    group: '{{ dev_user_name }}'
+    mode: u=rwx,g=,o=
+  when: pytnon_venv_activate is defined and pytnon_venv_activate
+  vars:
+    ansible_user: '{{ dev_user_name }}'
