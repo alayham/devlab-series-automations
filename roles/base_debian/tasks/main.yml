@@ -112,5 +112,9 @@
     group: root
     mode: u=rw,g=r,o=r
   loop:
-    - devlab_ca.crt
     - devlab_ca.pem
+
+- name: Trust the certificate globally
+  ansible.builtin.raw: update-ca-certificates
+  register: ca_global_trust
+  changed_when: '"1 added" in ca_global_trust.stdout'
