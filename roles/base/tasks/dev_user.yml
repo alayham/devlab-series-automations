@@ -1,0 +1,31 @@
+- name: Create the dev user
+  ansible.builtin.user:
+    name: "{{ dev_user_name }}"
+    password: "{{ dev_user_password }}"
+    shell: "/bin/bash"
+    generate_ssh_key: true
+    ssh_key_type: ed25519
+    ssh_key_comment: "{{ dev_user_name }}@{{ inventory_hostname_short }}"
+    ssh_key_file: .ssh/id_ed25519
+
+- name: Enable sudo for the dev user
+  ansible.builtin.copy:
+    content: "{{ dev_user_name }} ALL=(ALL) NOPASSWD:ALL"
+    dest: "/etc/sudoers.d/{{ dev_user_name }}"
+    owner: root
+    group: root
+    mode: u=r,g=r,o=
+
+- name: Copy SSH public keys
+  ansible.posix.authorized_key:
+    user: "{{ dev_user_name }}"
+    key: "{{ item }}"
+    state: present
+  loop: "{{ base_ssh_public_keys }}"
+
+- name: Remove expired public keys
+  ansible.posix.authorized_key:
+    user: "{{ dev_user_name }}"
+    key: "{{ item }}"
+    state: absent
+  loop: "{{ base_ssh_expired_public_keys }}"

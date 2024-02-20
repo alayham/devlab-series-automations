@@ -1,0 +1,24 @@
+- name: Create ansible user
+  ansible.builtin.user:
+    name: "{{ ansible_user_name }}"
+    password: "{{ ansible_user_password }}"
+    shell: "/bin/bash"
+    generate_ssh_key: true
+    ssh_key_type: ed25519
+    ssh_key_comment: "{{ dev_user_name }}@{{ inventory_hostname_short }}"
+    ssh_key_file: .ssh/id_ed25519
+
+
+- name: Add ansible controller ssh key
+  ansible.posix.authorized_key:
+    user: "{{ ansible_user_name }}"
+    key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOJVqUbvrJyOzi6UKuRxAhuhecXiIM/9d6h9IVRnsr3N root@ansible"
+
+- name: Enable sudo for the ansible user
+  ansible.builtin.copy:
+    content: |
+      {{ ansible_user_name }} ALL=(ALL) NOPASSWD:ALL
+    dest: "/etc/sudoers.d/{{ ansible_user_name }}"
+    owner: root
+    group: root
+    mode: u=r,g=r,o=
