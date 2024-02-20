@@ -76,19 +76,3 @@
   ansible.builtin.raw: "source ~/.nvm/nvm.sh && cd {{ nvm_project_path }} && {{ nvm_build_commands | join(' && ') }}"
   changed_when: true
 
-- name: Tell Nodejs to trust our root CA
-  ansible.builtin.lineinfile:
-    line: "export NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/devlab_ca.pem"
-    path: /etc/profile.d/nodejs-trust-root-ca.sh
-    create: true
-    state: present
-    mode: u=rwx,g=rx,o=rx
-  vars:
-    ansible_become: true
-
-- name: Trust the certificate globally
-  ansible.builtin.raw: update-ca-certificates
-  register: ca_global_trust
-  changed_when: '"1 added" in ca_global_trust.stdout'
-  vars:
-    ansible_become: true

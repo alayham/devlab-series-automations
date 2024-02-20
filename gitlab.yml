@@ -8,9 +8,9 @@
     - vars/gitlab.yml
   roles:
     - role: pve_purge
-      when: recreate | default(false)
+      when: recreate is defined and recreate
     - role: pve_lxc_create
-      when: recreate | default(false)
+      when: recreate is defined and recreate
 
 - name: Enable ssh
   hosts: devlab_pve
@@ -19,7 +19,7 @@
     - vars/gitlab.yml
   roles:
     - role: pve_lxc_enable_sshd
-      when: recreate | default(false)
+      when: recreate is defined and recreate
 
 - name: Setup the base system
   hosts: gitlab
@@ -29,7 +29,55 @@
     - vars/gitlab.yml
   roles:
     - role: gitlab
-      when: recreate | default(false)
+      when: recreate is defined and recreate
+  tasks:
+    - name: Get a New SSL certificate
+      ansible.builtin.include_role:
+        name: ssl_server
+
+    - name: Create the ssl directory
+      ansible.builtin.file:
+        path: /etc/gitlab/ssl
+        state: directory
+        owner: '{{ ssl_server_user }}'
+        group: '{{ ssl_server_group }}'
+        mode: u=rwx,g=r,o=
+    - name: Copy the certificate and private key
+      ansible.builtin.copy:
+        remote_src: true
+        src: '{{ item.src }}'
+        dest: '{{ item.dest }}'
+        owner: '{{ ssl_server_user }}'
+        group: '{{ ssl_server_group }}'
+        mode: u=rw,g=r,o=
+      loop:
+        - src: '{{ ssl_server_cert_path }}/{{ ssl_server_cert_name }}_chain.pem'
+          dest: /etc/gitlab/ssl/gitlab.devlab.crt
+        - src: '{{ ssl_server_cert_path }}/{{ ssl_server_cert_name }}.key'
+          dest: /etc/gitlab/ssl/gitlab.devlab.key
+
+    - name: Update configurations, if needed
+      ansible.builtin.lineinfile:
+        line: "{{ item.config }} '{{ item.value }}'"
+        regexp: '^{{ item.config }} '
+        path: /etc/gitlab/gitlab.rb
+      loop:
+        - config: external_url
+          value: '{{ gitlab_url }}'
+        - config: "letsencrypt['enable'] ="
+          value: "false"
+        - config: "nginx['redirect_http_to_https'] ="
+          value: "true"
+    - name: Reconfigure GitLab
+      ansible.builtin.raw: '{{ item }}'
+      loop:
+        - gitlab-ctl stop
+        - gitlab-ctl reconfigure
+        - gitlab-ctl start
+      changed_when: true
+    - name: Wait for gitlab to restart
+      ansible.builtin.wait_for:
+        timeout: 30
 
 - name: Configure gitlab
   hosts: localhost

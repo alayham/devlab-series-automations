@@ -1,3 +1,4 @@
+recreate: false
 vmid: 100
 hostname: gitlab-ce
 pve_lxc_ostemplate: 'local:vztmpl/almalinux-9-default_20221108_amd64.tar.xz'
@@ -8,7 +9,16 @@ pve_lxc_unpriviliged: false
 pve_lxc_networks:
   net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=12:00:00:00:01:00"
 
-gitlab_url: 'http://192.168.100.100'
+ssl_server_cert_path: /etc/certs
+ssl_server_cert_name: gitlab
+ssl_server_user: root
+ssl_server_group: gitlab-www
+ssl_server_subject_alt_names:
+  - gitlab.devlab
+  - 192.168.100.100
+  - localhost
+
+gitlab_url: 'https://gitlab.devlab'
 gitlab_edition: 'gitlab-ce'
 gitlab_groups:
   - name: Internal projects

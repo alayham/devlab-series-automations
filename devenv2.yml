@@ -8,3 +8,19 @@
   roles:
     - pve_purge
     - pve_lxc_create
+
+- name: Enable ssh
+  hosts: devlab_pve
+  vars_files:
+    - vars/devlab-pve.yml
+    - vars/devenv2.yml
+  roles:
+    - pve_lxc_enable_sshd
+
+- name: Configure the devenv
+  hosts: devenv2
+  vars_files:
+    - vaults/vault.yml
+    - vars/devenv2.yml
+  roles:
+    - base

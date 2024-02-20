@@ -26,6 +26,6 @@
     - vaults/vault.yml
     - vars/python-312.yml
   roles:
-    - role: base_fedora
+    - role: base
       when: recreate is defined and recreate
     - role: python_venv

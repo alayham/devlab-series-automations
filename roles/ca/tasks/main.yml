@@ -73,8 +73,7 @@
     mode: u=rw,g=r,o=r
   delegate_to: localhost
   loop:
-    - roles/base_debian/files/devlab_ca.pem
-    - roles/base_fedora/files/devlab_ca.pem
+    - roles/base/files/devlab_ca.pem
 
 - name: Create intermediate private key with password protection
   community.crypto.openssl_privatekey:

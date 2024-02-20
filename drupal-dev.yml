@@ -17,7 +17,7 @@
     - vaults/vault.yml
     - vars/drupal-dev.yml
   roles:
-    - role: base_debian
+    - role: base
       when: recreate is defined and recreate
 
 - name: Make it a lamp devenv

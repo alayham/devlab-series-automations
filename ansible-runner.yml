@@ -15,7 +15,7 @@
   vars_files:
     - vaults/vault.yml
   roles:
-    - base_debian
+    - base
 
 - name: Make it a Gitlab runner
   hosts: ansible_runner

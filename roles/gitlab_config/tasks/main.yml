@@ -9,6 +9,7 @@
     visibility: '{{ item.visibility }}'
     project_creation_level: maintainer
     state: present
+    ca_path: '/usr/local/share/ca-certificates/devlab_ca.pem'
   loop: '{{ gitlab_groups }}'
 
 - name: "Create GitLab User"
@@ -21,6 +22,7 @@
     password: '{{ gitlab_user_password }}'
     email: devlab@example.com
     state: present
+    ca_path: '/usr/local/share/ca-certificates/devlab_ca.pem'
 
 - name: Add the user to all the groups
   community.general.gitlab_group_members:
@@ -30,6 +32,7 @@
     gitlab_group: '{{ item.path }}'
     gitlab_user: '{{ gitlab_user_name }}'
     access_level: owner
+    ca_path: '/usr/local/share/ca-certificates/devlab_ca.pem'
   loop: '{{ gitlab_groups }}'
 
 - name: "Create repositories"
@@ -41,4 +44,5 @@
     path: '{{ item.path }}'
     group: '{{ item.group }}'
     visibility: '{{ item.visibility }}'
+    ca_path: '/usr/local/share/ca-certificates/devlab_ca.pem'
   loop: '{{ gitlab_projects }}'
