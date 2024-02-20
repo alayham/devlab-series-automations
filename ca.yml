@@ -1,0 +1,24 @@
+- name: Recreate the devenv
+  hosts: localhost
+  vars_files:
+    - vars/devlab-pve.yml
+    - vaults/vault.yml
+  vars:
+    vmid: 110
+    recreate: true
+  roles:
+    - role: pve_purge
+      when: recreate
+    - role: pve_lxc_create
+      vars:
+        hostname: devlab-ca
+        pve_lxc_networks:
+          net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=12:00:00:00:01:10"
+      when: recreate
+
+- name: Create the CA certificates
+  hosts: devlab_ca
+  vars_files:
+    - vaults/vault.yml
+  roles:
+    - ca

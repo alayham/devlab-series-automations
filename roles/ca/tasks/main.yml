@@ -1,0 +1,108 @@
+---
+- name: Set some facts
+  ansible.builtin.set_fact:
+    ca_root_key: '{{ ca_root_path }}/{{ ca_root_cert_folder_name }}.key'
+    ca_root_csr: '{{ ca_root_path }}/{{ ca_root_cert_folder_name }}.csr'
+    ca_root_crt: '{{ ca_root_path }}/{{ ca_root_cert_folder_name }}.pem'
+    ca_intermediate_key: '{{ ca_intermediate_path }}/{{ ca_root_cert_folder_name }}_intermediate.key'
+    ca_intermediate_csr: '{{ ca_intermediate_path }}/{{ ca_root_cert_folder_name }}_intermediate.csr'
+    ca_intermediate_crt: '{{ ca_intermediate_path }}/{{ ca_root_cert_folder_name }}_intermediate.pem'
+
+- name: Upgrade packages
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: full
+
+- name: Install the required library
+  ansible.builtin.package:
+    name: python3-cryptography
+
+- name: Create directories
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+    path: '{{ item }}'
+  loop:
+    - '{{ ca_root_path }}'
+    - '{{ ca_intermediate_path }}'
+
+- name: Create root private key with password protection
+  community.crypto.openssl_privatekey:
+    path: '{{ ca_root_key }}'
+    passphrase: '{{ ca_root_key_passphrase }}'
+    cipher: auto
+
+- name: Create root certificate signing request (CSR) for CA certificate
+  community.crypto.openssl_csr:
+    path: '{{ ca_root_csr }}'
+    privatekey_path: '{{ ca_root_key }}'
+    privatekey_passphrase: '{{ ca_root_key_passphrase }}'
+    common_name: '{{ ca_root_cert_common_name }}'
+    use_common_name_for_san: false  # since we do not specify SANs, don't use CN as a SAN
+    basic_constraints:
+      - 'CA:TRUE'
+    basic_constraints_critical: true
+    key_usage:
+      - keyCertSign
+    key_usage_critical: true
+
+- name: Create self-signed CA certificate from CSR
+  community.crypto.x509_certificate_pipe:
+    csr_path: '{{ ca_root_csr }}'
+    privatekey_path: '{{ ca_root_key }}'
+    privatekey_passphrase: '{{ ca_root_key_passphrase }}'
+    provider: selfsigned
+  register: root_cert
+
+- name: Save the root cert on the CA host
+  ansible.builtin.copy:
+    content: '{{ root_cert.certificate }}'
+    dest: '{{ ca_root_crt }}'
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+
+- name: Save the root cert on the controller
+  ansible.builtin.copy:
+    content: '{{ root_cert.certificate }}'
+    dest: '{{ item }}'
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+  delegate_to: localhost
+  loop:
+    - roles/base_debian/files/devlab_ca.pem
+    - roles/base_fedora/files/devlab_ca.pem
+
+- name: Create intermediate private key with password protection
+  community.crypto.openssl_privatekey:
+    path: '{{ ca_intermediate_key }}'
+    passphrase: '{{ ca_intermediate_key_passphrase }}'
+    cipher: auto
+
+- name: Create CSR for intermediate certificate
+  community.crypto.openssl_csr:
+    path: '{{ ca_intermediate_csr }}'
+    privatekey_path: '{{ ca_intermediate_key }}'
+    privatekey_passphrase: '{{ ca_intermediate_key_passphrase }}'
+    common_name: '{{ ca_intermediate_cert_common_name }}'
+    use_common_name_for_san: false  # since we do not specify SANs, don't use CN as a SAN
+    basic_constraints:
+      - 'CA:TRUE'
+    basic_constraints_critical: true
+    key_usage:
+      - keyCertSign
+    key_usage_critical: true
+
+- name: Sign certificate with our CA
+  community.crypto.x509_certificate:
+    path: '{{ ca_intermediate_crt }}'
+    csr_path: '{{ ca_intermediate_csr }}'
+    provider: ownca
+    ownca_path: '{{ ca_root_crt }}'
+    ownca_privatekey_path: '{{ ca_root_key }}'
+    ownca_privatekey_passphrase: '{{ ca_root_key_passphrase }}'
+    ownca_not_after: +824d  # see https://support.apple.com/en-us/103769
+    ownca_not_before: "-1d"  # valid since yesterday

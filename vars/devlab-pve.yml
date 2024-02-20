@@ -27,3 +27,12 @@ pve_lxc_unpriviliged: true
 pve_lxc_autostart_onboot: true
 pve_lxc_start: true
 pve_lxc_nameserver: 192.168.1.253
+
+ssl_server_cert_path: /etc/certs
+ssl_server_cert_name: pveproxy-ssl
+ssl_server_user: root
+ssl_server_group: www-data
+ssl_server_subject_alt_names:
+  - devlab.devlab
+  - 192.168.100.99
+  - localhost

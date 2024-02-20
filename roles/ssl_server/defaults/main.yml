@@ -1,0 +1,10 @@
+---
+ssl_server_cert_path: /etc/certs
+ssl_server_cert_name: localhost
+
+ssl_server_user: www-data
+sss_server_group: www-data
+
+ca_root_cert_folder_name: devlab_ca
+ca_root_path: '/etc/devlab_ca/root'
+ca_intermediate_path: '/etc/devlab_ca/intermediate'

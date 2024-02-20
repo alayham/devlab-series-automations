@@ -1,0 +1,7 @@
+---
+ca_root_cert_folder_name: devlab_ca
+ca_root_path: '/etc/devlab_ca/root'
+ca_root_cert_common_name: Devlab Certificate Authority
+
+ca_intermediate_path: '/etc/devlab_ca/intermediate'
+ca_intermediate_cert_common_name: Devlab Intermediate Certificate Authority
