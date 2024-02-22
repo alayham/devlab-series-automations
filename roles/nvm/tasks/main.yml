@@ -75,4 +75,3 @@
 - name: Build commands
   ansible.builtin.raw: "source ~/.nvm/nvm.sh && cd {{ nvm_project_path }} && {{ nvm_build_commands | join(' && ') }}"
   changed_when: true
-
