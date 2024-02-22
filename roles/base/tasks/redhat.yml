@@ -1,0 +1,51 @@
+---
+- name: Upgrade all packages.
+  ansible.builtin.dnf:
+    name: '*'
+    state: latest
+    update_only: true
+
+- name: Install packages
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+  loop: "{{ base_dnf_install }}"
+
+- name: Remove packages
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+    state: absent
+    autoremove: true
+  loop: "{{ base_dnf_remove }}"
+
+- name: Copy the devlab CA
+  ansible.builtin.copy:
+    src: devlab_ca.pem
+    dest: "/etc/pki/ca-trust/source/anchors/devlab_ca.crt"
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+  loop:
+    - devlab_ca.pem
+
+- name: Trust the certificate globally
+  ansible.builtin.raw: update-ca-trust
+  changed_when: true
+
+- name: Find all clients who use nss on the host
+  ansible.builtin.find:
+    paths: /home
+    patterns: cert9.db
+    recurse: true
+  register: cert_dbs
+
+- name: Install client dependencies
+  ansible.builtin.package:
+    name: nss-tools
+  when: cert_dbs.files
+
+- name: Trust the certificate in browsers
+  ansible.builtin.command:
+    cmd: 'certutil -A -t "TC,C" -n "devlab_ca" -i  "/etc/pki/ca-trust/source/anchors/devlab_ca.crt" -d "sql:{{ item.path | dirname }}"'
+  changed_when: true
+  loop: '{{ cert_dbs.files }}'
+  when: cert_dbs.files

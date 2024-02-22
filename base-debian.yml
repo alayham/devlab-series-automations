@@ -4,4 +4,4 @@
   vars_files:
     - vaults/vault.yml
   roles:
-    - base_debian
+    - base

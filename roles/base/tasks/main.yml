@@ -1,0 +1,39 @@
+---
+- name: Run Redhat tasks
+  ansible.builtin.include_tasks: redhat.yml
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Run Debian tasks
+  ansible.builtin.include_tasks: debian.yml
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Create the dev user
+  ansible.builtin.include_tasks: dev_user.yml
+  when: base_dev_user
+
+- name: Create the ansible user
+  ansible.builtin.include_tasks: ansible_user.yml
+  when: base_ansible_user
+
+- name: Add additional hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: '{{ item }}'
+  loop: '{{ base_additional_hosts }}'
+
+- name: Add some aliases
+  ansible.builtin.lineinfile:
+    line: "{{ item }}"
+    path: /etc/profile.d/ansible-aliases.sh
+    create: true
+    state: present
+    mode: u=rwx,g=rx,o=rx
+  loop: '{{ base_default_aliases }}'
+
+- name: Tell Nodejs to trust our root CA
+  ansible.builtin.lineinfile:
+    line: "export NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/devlab_ca.crt"
+    path: /etc/profile.d/nodejs-trust-root-ca.sh
+    create: true
+    state: present
+    mode: u=rwx,g=rx,o=rx

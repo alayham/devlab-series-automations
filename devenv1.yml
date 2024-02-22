@@ -15,4 +15,4 @@
     - vaults/vault.yml
     - vars/devenv1.yml
   roles:
-    - base_debian
+    - base

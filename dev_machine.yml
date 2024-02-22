@@ -1,0 +1,7 @@
+- name: Run the base role
+  hosts: dev_machine
+  vars:
+    base_dev_user: false
+    base_ansible_user: false
+  roles:
+    - base

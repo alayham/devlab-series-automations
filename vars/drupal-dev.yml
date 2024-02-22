@@ -4,7 +4,7 @@ pve_lxc_memory: 4096
 pve_lxc_networks:
   net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=12:00:00:00:01:21"
 
-ssh_public_keys:
+base_ssh_public_keys:
   - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJnJ07MwmeJ++RS3JaPmZ2OjRHzbn/UmA9cVV3GK7WQE devlab@devlab-desktop
   - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOJVqUbvrJyOzi6UKuRxAhuhecXiIM/9d6h9IVRnsr3N root@ansible
 

@@ -1,6 +1,0 @@
----
-- name: Test
-  hosts: localhost
-  remote_user: root
-  roles:
-    - base_debian

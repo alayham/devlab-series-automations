@@ -1,0 +1,37 @@
+---
+base_dev_user: true
+base_ansible_user: true
+
+base_additional_hosts:
+  - "127.0.0.1       mobile.pipe.aria.microsoft.com"
+  - "::1             mobile.pipe.aria.microsoft.com"
+  - "127.0.0.1       g.msn.com"
+  - "127.0.0.1       g.live.com"
+  - "192.168.100.99  devlab.devlab"
+  - "192.168.100.100 gitlab.devlab"
+
+base_default_aliases:
+  - 'alias ll="/usr/bin/ls --color=auto -alF"'
+
+base_ssh_public_keys:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJnJ07MwmeJ++RS3JaPmZ2OjRHzbn/UmA9cVV3GK7WQE devlab@devlab-desktop
+base_ssh_expired_public_keys: []
+
+base_apt_install:
+  - "sudo"
+  - "curl"
+  - "git"
+  - "zip"
+  - "locales-all"
+  - "rsync"
+  - "gnupg"
+  - "python3-openssl"
+base_apt_remove:
+  - postfix
+
+base_dnf_install:
+  - "git"
+  - "zip"
+  - "rsync"
+  - "python3-cryptography"
+base_dnf_remove: []
