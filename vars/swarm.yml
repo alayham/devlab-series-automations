@@ -1,0 +1,25 @@
+recreate: false
+swarm_managers:
+  - vmid: 131
+    hostname: manager1.swarm.devlab
+    pve_lxc_ostemplate: 'local:vztmpl/fedora-39-default_20231118_amd64.tar.xz'
+    pve_lxc_networks:
+      net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=12:00:00:00:01:31"
+  - vmid: 132
+    hostname: manager2.swarm.devlab
+    pve_lxc_networks:
+      net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=12:00:00:00:01:32"
+swarm_workers:
+  - vmid: 141
+    hostname: worker1.swarm.devlab
+    pve_lxc_ostemplate: 'local:vztmpl/fedora-39-default_20231118_amd64.tar.xz'
+    pve_lxc_networks:
+      net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=12:00:00:00:01:41"
+  - vmid: 142
+    hostname: worker2.swarm.devlab
+    pve_lxc_networks:
+      net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=12:00:00:00:01:42"
+  - vmid: 143
+    hostname: worker3.swarm.devlab
+    pve_lxc_networks:
+      net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=12:00:00:00:01:43"

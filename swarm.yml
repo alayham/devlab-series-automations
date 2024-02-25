@@ -1,0 +1,116 @@
+- name: Recreate the swarm hosts
+  hosts: localhost
+  vars_files:
+    - vars/devlab-pve.yml
+    - vaults/vault.yml
+    - vars/swarm.yml
+  tasks:
+    - name: Purge the old containers
+      ansible.builtin.include_role:
+        name: pve_purge
+      vars:
+        vmid: '{{ item.vmid }}'
+      when: recreate
+      loop: '{{ swarm_managers + swarm_workers }}'
+    - name: Create the containers
+      ansible.builtin.include_role:
+        name: pve_lxc_create
+      vars:
+        vmid: '{{ item.vmid }}'
+        hostname: '{{ item.hostname }}'
+        pve_lxc_networks: '{{ item.pve_lxc_networks }}'
+        pve_lxc_ostemplate: '{{ item.pve_lxc_ostemplate | default("local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst") }}'
+      when: recreate
+      loop: '{{ swarm_managers + swarm_workers }}'
+
+- name: Enable ssh on Fedora hosts
+  hosts: devlab_pve
+  vars_files:
+    - vars/devlab-pve.yml
+    - vars/swarm.yml
+  tasks:
+    - name: Enable ssh
+      ansible.builtin.include_role:
+        name: pve_lxc_enable_sshd
+      vars:
+        vmid: '{{ host.vmid }}'
+      when: recreate and 'fedora' in (host.pve_lxc_ostemplate | default(''))
+      loop: '{{ swarm_managers + swarm_workers }}'
+      loop_control:
+        loop_var: host
+
+- name: Install docker
+  hosts:
+    - swarm_managers
+    - swarm_workers
+  vars_files:
+    - vaults/vault.yml
+    - vars/swarm.yml
+  vars:
+    base_dev_user: false
+    base_ansible_user: false
+  roles:
+    - role: base
+      when: recreate
+    - role: docker
+      when: recreate
+    - role: ssl_server
+      vars:
+        ssl_server_cert_path: /etc/certs
+        ssl_server_cert_name: '{{ ansible_hostname }}'
+        ssl_server_user: root
+        ssl_server_group: root
+        ssl_server_subject_alt_names:
+          - '{{ ansible_fqdn }}'
+      when: recreate
+
+- name: Initialize the swarm
+  hosts: swarm_primary_manager
+  tasks:
+    - name: Initialize the primary manager
+      community.docker.docker_swarm:
+        state: present
+      register: swarm_result
+    - name: Save the tokens
+      ansible.builtin.set_fact:
+        manager_token: '{{ swarm_result.swarm_facts.JoinTokens.Manager }}'
+        worker_token: '{{ swarm_result.swarm_facts.JoinTokens.Worker }}'
+        cachable: true
+
+- name: Add the managers
+  hosts: swarm_other_managers
+  tasks:
+    - name: Add the other managers to the swarm
+      community.docker.docker_swarm:
+        state: join
+        remote_addrs:
+          - 192.168.100.131
+        join_token: "{{ hostvars['192.168.100.131']['manager_token'] }}"
+
+- name: Add the worker hosts
+  hosts: swarm_workers
+  tasks:
+    - name: Add the other managers to the swarm
+      community.docker.docker_swarm:
+        state: join
+        join_token: "{{ hostvars['192.168.100.131']['worker_token'] }}"
+        remote_addrs:
+          - 192.168.100.131
+          - 192.168.100.132
+
+- name: Test by installing chatbot-ollama
+  hosts: swarm_primary_manager
+  tasks:
+    - name: Install chatbot-ollama
+      community.docker.docker_swarm_service:
+        name: chatbot-ollama
+        image: ghcr.io/ivanfioravanti/chatbot-ollama:main
+        replicas: 1
+        publish:
+          - published_port: 3000
+            target_port: 3000
+            protocol: tcp
+            mode: host
+        mode: global
+        env:
+          OLLAMA_HOST=http://192.168.1.50:11434

@@ -1,0 +1,33 @@
+---
+- name: Run Redhat tasks
+  ansible.builtin.include_tasks: redhat.yml
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Run Debian tasks
+  ansible.builtin.include_tasks: debian.yml
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install docker packages
+  ansible.builtin.package:
+    name: '{{ item }}'
+    update_cache: true
+  loop:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - docker-buildx-plugin
+    - docker-compose-plugin
+    - python3-requests
+    - python3-docker
+
+- name: Start the docker service
+  ansible.builtin.service:
+    name: docker
+    enabled: true
+    state: restarted
+
+- name: Login to the gitlab registry
+  community.docker.docker_login:
+    registry_url: https://gitlab.devlab:5050
+    username: root
+    password: '{{ gitlab_root_password }}'

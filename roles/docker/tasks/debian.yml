@@ -1,0 +1,25 @@
+- name: Create the keyrings directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: u=rwx,g=rx,o=rx
+
+- name: Fetch the signing keyring
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+
+- name: Enable the repository
+  ansible.builtin.copy:
+    content: deb [signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable
+    dest: /etc/apt/sources.list.d/docker.list
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+
+- name: Update the cache
+  ansible.builtin.apt:
+    update_cache: true
