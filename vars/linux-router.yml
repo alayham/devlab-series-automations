@@ -1,0 +1,44 @@
+recreate: false
+vmid: 222
+# pve_lxc_ostemplate: 'local:vztmpl/fedora-39-default_20231118_amd64.tar.xz'
+hostname: linux-router.devlab
+pve_lxc_networks:
+  net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=02:00:00:00:02:22"
+  net1: "name=eth100,bridge=vmbr100,ip=192.168.100.1/24,firewall=1"
+
+linux_router_mac_prefix: '12:00:00:00'
+linux_router_ip_prefix: '192.168.100'
+linux_router_reservation_start: 100
+linux_router_reservation_end: 254
+
+linux_router_static_reservations:
+  - mac: '12:00:00:00:00:10'
+    ip: '10'
+  - mac: '12:00:00:00:00:90'
+    ip: '90'
+  - mac: '12:00:00:00:00:99'
+    ip: '99'
+  - mac: '12:00:00:00:00:95'
+    ip: '95'
+
+kea_dhcp4_config:
+  multi-threading:
+    enable-multi-threading: false
+  interfaces-config:
+    interfaces:
+      - eth100
+  reservations-global: true
+  subnet4:
+    - id: 1
+      subnet: 192.168.100.0/24
+      interface: eth100
+      option-data:
+        - name: domain-name-servers
+          data: 192.168.1.253, 9.9.9.9
+          always-send: true
+        - name: routers
+          data: 192.168.100.1
+          always-send: true
+      match-client-id: false
+      pools:
+        - pool: 192.168.100.20-192.168.100.50
