@@ -1,0 +1,1 @@
+linux_router_nftables_config: /etc/sysconfig/nftables.conf
