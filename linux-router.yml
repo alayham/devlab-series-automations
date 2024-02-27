@@ -1,0 +1,34 @@
+---
+- name: Recreate the router.
+  hosts:
+    - localhost
+  vars_files:
+    - vars/main-pve.yml
+    - vaults/vault.yml
+    - vars/linux-router.yml
+  roles:
+    - role: pve_purge
+      when: recreate
+    - role: pve_lxc_create
+      when: recreate
+
+- name: Enable ssh on Fedora
+  hosts: main_pve
+  vars_files:
+    - vars/main-pve.yml
+    - vars/linux-router.yml
+  tasks:
+    - name: Enable ssh
+      ansible.builtin.include_role:
+        name: pve_lxc_enable_sshd
+      when: "recreate and 'fedora' in (pve_lxc_ostemplate | default(''))"
+
+- name: Configure the router
+  hosts: linux_router
+  vars_files:
+    - vaults/vault.yml
+    - vars/linux-router.yml
+  roles:
+    - base
+    - linux_router
+    - kea

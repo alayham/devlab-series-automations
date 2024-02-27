@@ -1,0 +1,20 @@
+"reservations": [
+// static reservations
+{% for item in linux_router_static_reservations | default([]) %}
+{
+    "hw-address": "{{ item.mac }}",
+    "ip-address": "{{ linux_router_ip_prefix }}.{{ item.ip  }}"
+},
+{% endfor %}
+// Automatic reservations
+{% for number in range(linux_router_reservation_start, linux_router_reservation_end) %}
+{
+    "hw-address": "{{ linux_router_mac_prefix }}:{{ "%02d" | format(number / 100) }}:{{ "%02d" | format(number % 100) }}",
+    "ip-address": "{{ linux_router_ip_prefix }}.{{ number }}"
+},
+{% endfor %}
+{
+    "hw-address": "{{ linux_router_mac_prefix }}:{{ "%02d" | format(linux_router_reservation_end / 100) }}:{{ "%02d" | format(linux_router_reservation_end % 100) }}",
+    "ip-address": "{{ linux_router_ip_prefix }}.{{ linux_router_reservation_end }}"
+}
+],

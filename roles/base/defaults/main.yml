@@ -33,5 +33,6 @@ base_dnf_install:
   - "git"
   - "zip"
   - "rsync"
+  - "nftables"
   - "python3-cryptography"
 base_dnf_remove: []

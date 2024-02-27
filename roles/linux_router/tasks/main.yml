@@ -1,4 +1,12 @@
 ---
+- name: Include Redhat variables
+  ansible.builtin.include_vars: Redhat.yml
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Include Debian variables
+  ansible.builtin.include_vars: Debian.yml
+  when: ansible_facts['os_family'] == "Debian"
+
 - name: Configure IPv4 routing
   ansible.posix.sysctl:
     name: "{{ item.key }}"
@@ -14,10 +22,10 @@
     net.ipv4.conf.default.rp_filter: 1
     net.ipv4.conf.all.rp_filter: 1
 
-- name: Copy nftables configuration file
+- name: Copy nftables configuration file for Debian
   ansible.builtin.copy:
     src: nftables.conf
-    dest: /etc/nftables.conf
+    dest: '{{ linux_router_nftables_config }}'
     owner: root
     group: root
     mode: u=rwx,g=rx,o=rx

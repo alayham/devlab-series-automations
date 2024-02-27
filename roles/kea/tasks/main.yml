@@ -1,0 +1,41 @@
+---
+- name: Include Redhat variables
+  ansible.builtin.include_vars: Redhat.yml
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Include Debian variables
+  ansible.builtin.include_vars: Debian.yml
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install packages
+  ansible.builtin.package:
+    name: '{{ item }}'
+  loop: '{{ kea_install_packages }}'
+
+- name: Copy DHCP4 configuration
+  ansible.builtin.template:
+    src: kea-dhcp4.conf.j2
+    dest: '/etc/kea/kea-dhcp4.conf'
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+
+- name: Copy global reservations
+  ansible.builtin.template:
+    src: reservations4.conf.j2
+    dest: '/etc/kea/reservations4.conf'
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+
+- name: Inject global reservations Template
+  ansible.builtin.lineinfile:
+    path: '/etc/kea/kea-dhcp4.conf'
+    line: '        <?include "/etc/kea/reservations4.conf" ?>'
+    insertafter: '    "Dhcp4": {'
+
+- name: Restart KEA
+  ansible.builtin.service:
+    name: '{{ kea_dhcp4_service_name }}'
+    state: restarted
+    enabled: true
