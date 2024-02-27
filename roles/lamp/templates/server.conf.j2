@@ -1,0 +1,20 @@
+server {
+    listen {{ site.port }};
+    server_name example.journaldev.com;
+    root {{ site.document_root }};
+
+    access_log /var/log/nginx/{{ site.hostname }}.log;
+    error_log  /var/log/nginx/{{ site.hostname }}-error.log error;
+    index index.html index.html index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php$is_args$args;
+    }
+
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass unix:/run/php/php8.2-fpm-{{ dev_user_name }}.sock;
+        fastcgi_index index.php;
+        include fastcgi.conf;
+    }
+}

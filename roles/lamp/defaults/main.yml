@@ -46,3 +46,6 @@ lamp_apache2_default_modules:
   - dir
   - mime
   - suexec
+
+lamp_nginx_default_packages:
+  - nginx

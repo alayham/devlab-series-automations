@@ -1,0 +1,25 @@
+- name: Create the install path
+  ansible.builtin.file:
+    path: '{{ site.install_path }}'
+    state: directory
+    owner: '{{ dev_user_name }}'
+    group: '{{ dev_user_name }}'
+    mode: u=rwx,g=rx,o=rx
+
+- name: Clone the repo
+  ansible.builtin.git:
+    repo: '{{ site.git_clone_url }}'
+    dest: '{{ site.install_path }}'
+    version: master
+
+- name: Apply snippets
+  ansible.builtin.get_url:
+    url: '{{ snippet.value }}'
+    dest: '{{ site.install_path }}/{{ snippet.key }}'
+    owner: '{{ dev_user_name }}'
+    group: '{{ dev_user_name }}'
+    mode: u=rw,g=,o=
+  with_dict: '{{ site.snippets }}'
+  loop_control:
+    loop_var: snippet
+  when: site.snippets is defined and site.snippets

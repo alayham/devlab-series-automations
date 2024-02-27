@@ -1,0 +1,28 @@
+- name: Install Nginx
+  ansible.builtin.apt:
+    name: '{{ item }}'
+    state: present
+  loop: '{{ lamp_nginx_default_packages + (lamp_nginx_extra_packages | default([])) }}'
+
+- name: Create sites
+  ansible.builtin.template:
+    src: server.conf.j2
+    dest: '/etc/nginx/sites-available/{{ site.hostname }}.conf'
+    owner: www-data
+    group: www-data
+    mode: u=rw,o=rw,g=r
+  loop: '{{ lamp_server_sites }}'
+  loop_control:
+    loop_var: site
+  when: site.document_root is defined and site.document_root
+
+
+- name: Create symbolic link
+  ansible.builtin.file:
+    src: '/etc/nginx/sites-available/{{ site.hostname }}.conf'
+    dest: '/etc/nginx/sites-enabled/{{ site.hostname }}.conf'
+    state: link
+  loop: '{{ lamp_server_sites }}'
+  loop_control:
+    loop_var: site
+  when: site.document_root is defined and site.document_root
