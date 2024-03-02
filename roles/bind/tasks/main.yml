@@ -1,0 +1,57 @@
+---
+- name: Include Redhat variables
+  ansible.builtin.include_vars: Redhat.yml
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Include Debian variables
+  ansible.builtin.include_vars: Debian.yml
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install bind packages
+  ansible.builtin.package:
+    name: '{{ item }}'
+  loop: '{{ bind_package_names }}'
+
+- name: Listen on IPv4
+  ansible.builtin.lineinfile:
+    path: '{{ bind_options_config_file }}'
+    line: '{{ item.value }}'
+    search_string: '{{ item.key }}'
+    insertafter: 'options {'
+  with_dict:
+    'listen-on ': '    listen-on port 53 { 127.0.0.1; 192.168.100.1; };'
+    'allow-query ': '    allow-query { localhost; 192.168.100.0/24; };'
+    'allow-recursion ': '    allow-recursion { localhost; 192.168.100.0/24; };'
+
+- name: Create the zone files
+  ansible.builtin.template:
+    src: zone.conf.j2
+    dest: '{{ bind_zones_dir }}/{{ zone.name }}.conf'
+    owner: root
+    group: root
+    mode: u=rw,g=rw,o=r
+  loop: '{{ bind_zones }}'
+  loop_control:
+    loop_var: 'zone'
+
+- name: Build the master zone include file
+  ansible.builtin.template:
+    dest: '{{ bind_config_dir }}/{{ bind_zones_config_file }}'
+    src: local.conf.j2
+    owner: root
+    group: root
+    mode: u=rw,g=rw,o=r
+  
+- name: make sure the activation file is included
+  ansible.builtin.lineinfile:
+    path: '{{ bind_options_config_file }}'
+    line: '{{ item.value }}'
+    search_string: '{{ item.key }}'
+  with_dict:
+    '{{ bind_zones_config_file }}': 'include "{{ bind_config_dir }}/{{ bind_zones_config_file }}";'
+
+- name: Restart the DNS Server
+  ansible.builtin.service:
+    name: named
+    enabled: true
+    state: restarted
