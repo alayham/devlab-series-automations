@@ -34,7 +34,7 @@ kea_dhcp4_config:
       interface: eth100
       option-data:
         - name: domain-name-servers
-          data: 192.168.1.253, 9.9.9.9
+          data: 192.168.100.1, 9.9.9.9
           always-send: true
         - name: routers
           data: 192.168.100.1
@@ -42,3 +42,47 @@ kea_dhcp4_config:
       match-client-id: false
       pools:
         - pool: 192.168.100.20-192.168.100.50
+
+base_dev_user: false
+base_ansible_user: false
+
+bind_zones:
+  - name: devlab
+    records:
+      - type: MX
+        name: '@'
+        target: mail.devlab
+        priority: 10
+      - type: A
+        name: linux-router
+        target: 192.168.100.1
+      - type: CNAME
+        name: ns1
+        target: linux-router
+      - type: A
+        name: devlab
+        target: 192.168.100.99
+      - type: A
+        name: swarm
+        target: 192.168.100.131
+      - type: A
+        name: swarm
+        target: 192.168.100.132
+      - type: A
+        name: swarm
+        target: 192.168.100.141
+      - type: A
+        name: swarm
+        target: 192.168.100.142
+      - type: A
+        name: swarm
+        target: 192.168.100.143
+
+  - name: 100.168.192.in-addr.arpa
+    records: 
+      - type: PTR
+        name: 1
+        target: router.devlab
+      - type: PTR
+        name: 99
+        target: devlab.devlab
