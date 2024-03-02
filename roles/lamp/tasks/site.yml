@@ -6,49 +6,17 @@
   vars:
     ansible_become: true
 
-- name: Composer create project
-  community.general.composer:
-    command: create-project
-    arguments: '{{ site.composer_project }} {{ site.install_path }} ~{{ site.project_version }}'
-    working_dir: '~'
-  when: site.composer_project is defined and site.composer_project
-  register: composer_run
+- name: Install using composer
+  ansible.builtin.include_tasks: composer.yml
+  when: site.composer_project is defined
 
-- name: Apply snippets
-  ansible.builtin.get_url:
-    url: '{{ snippet.value }}'
-    dest: '{{ site.install_path }}/{{ snippet.key }}'
-    owner: '{{ dev_user_name }}'
-    group: '{{ dev_user_name }}'
-    mode: u=rw,g=,o=
-  with_dict: '{{ site.snippets }}'
-  loop_control:
-    loop_var: snippet
-  when: snippets is defined and snippets
+- name: Install using downloaded archive
+  ansible.builtin.include_tasks: download_archive.yml
+  when: site.archive_url is defined
 
-- name: Composer Install, in case snippets override composer.json
-  community.general.composer:
-    command: install
-    arguments: ''
-    working_dir: '{{ site.install_path }}'
-    prefer_dist: true
-  when: snippets is defined and snippets and composer_run is changed
-
-- name: Install composer development packages
-  community.general.composer:
-    command: require
-    arguments: ' --dev {{ site.composer_dev_packages | join(" ") }}'
-    working_dir: '{{ site.install_path }}'
-    prefer_dist: true
-  when: site.composer_dev_packages is defined and site.composer_dev_packages
-
-- name: Install composer packages
-  community.general.composer:
-    command: require
-    arguments: '{{ site.composer_packages | join(" ") }}'
-    working_dir: '{{ site.install_path }}'
-    prefer_dist: true
-  when: site.composer_packages is defined and site.composer_packages
+- name: Install using git clone
+  ansible.builtin.include_tasks: git_clone.yml
+  when: site.git_clone_url is defined
 
 - name: Execute shell commands
   ansible.builtin.raw: 'cd {{ site.install_path }} && {{ site.shell_commands | join(" && ") }}'

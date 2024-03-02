@@ -1,0 +1,45 @@
+vmid: 125
+hostname: wordpress-dev
+pve_lxc_memory: 4096
+pve_lxc_disk: 8
+pve_lxc_networks:
+  net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=12:00:00:00:01:25"
+
+base_ssh_public_keys:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJnJ07MwmeJ++RS3JaPmZ2OjRHzbn/UmA9cVV3GK7WQE devlab@devlab-desktop
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOJVqUbvrJyOzi6UKuRxAhuhecXiIM/9d6h9IVRnsr3N root@ansible
+
+lamp_db_databases:
+  - wordpress
+  - wordpress2
+
+lamp_server_software: nginx
+ 
+lamp_php_extra_pachages:
+  - php-xdebug
+
+lamp_server_sites:
+  - hostname: wordpress
+    port: 81
+    archive_url: https://wordpress.org/latest.zip
+    install_path: /home/dev/wordpress
+    document_root: /home/dev/wordpress/wordpress
+    snippets:
+      wordpress/wp-config.php: https://gitlab.devlab/external/devlab-series-snippets/-/snippets/4/raw/main/wp-config.php?inline=false
+      wordpress.sql: https://gitlab.devlab/external/devlab-series-snippets/-/snippets/4/raw/main/wordpress.sql?inline=false
+    php_options: |
+      memory_limit = 256M
+    shell_commands:
+      - mysql -u dev -ppassword wordpress < /home/dev/wordpress/wordpress.sql
+  - hostname: wordpress2
+    port: 82
+    git_clone_url: https://github.com/WordPress/WordPress.git
+    install_path: /home/dev/wordpress2
+    document_root: /home/dev/wordpress2
+    snippets:
+      wp-config.php: https://gitlab.devlab/external/devlab-series-snippets/-/snippets/4/raw/main/wp-config2.php?inline=false
+      wordpress2.sql: https://gitlab.devlab/external/devlab-series-snippets/-/snippets/4/raw/main/wordpress2.sql?inline=false
+    php_options: |
+      memory_limit = 128M
+    shell_commands:
+      - mysql -u dev -ppassword wordpress2 < /home/dev/wordpress2/wordpress2.sql

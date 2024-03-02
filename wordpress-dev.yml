@@ -1,0 +1,21 @@
+---
+- name: Recreate the devenv
+  hosts: localhost
+  vars_files:
+    - vars/devlab-pve.yml
+    - vaults/vault.yml
+    - vars/wordpress-dev.yml
+  roles:
+    - role: pve_purge
+      when: recreate is defined and recreate
+    - role: pve_lxc_create
+      when: recreate is defined and recreate
+
+- name: Configure the devenv
+  hosts: wordpress_dev
+  vars_files:
+    - vaults/vault.yml
+    - vars/wordpress-dev.yml
+  roles:
+    - role: base
+    - role: lamp
