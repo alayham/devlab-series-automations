@@ -79,7 +79,7 @@ bind_zones:
         target: 192.168.100.143
 
   - name: 100.168.192.in-addr.arpa
-    records: 
+    records:
       - type: PTR
         name: 1
         target: router.devlab

@@ -41,8 +41,8 @@
     owner: root
     group: root
     mode: u=rw,g=rw,o=r
-  
-- name: make sure the activation file is included
+
+- name: Make sure the activation file is included
   ansible.builtin.lineinfile:
     path: '{{ bind_options_config_file }}'
     line: '{{ item.value }}'
