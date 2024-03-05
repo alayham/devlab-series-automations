@@ -7,8 +7,6 @@ base_additional_hosts:
   - "::1             mobile.pipe.aria.microsoft.com"
   - "127.0.0.1       g.msn.com"
   - "127.0.0.1       g.live.com"
-  - "192.168.100.99  devlab.devlab"
-  - "192.168.100.100 gitlab.devlab"
 
 base_default_aliases:
   - 'alias ll="/usr/bin/ls --color=auto -alF"'

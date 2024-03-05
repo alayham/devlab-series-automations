@@ -14,7 +14,7 @@ lamp_db_databases:
   - wordpress2
 
 lamp_server_software: nginx
- 
+
 lamp_php_extra_pachages:
   - php-xdebug
 

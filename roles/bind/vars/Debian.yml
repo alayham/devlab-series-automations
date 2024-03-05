@@ -1,0 +1,6 @@
+bind_package_names:
+  - bind9
+bind_config_dir: /etc/bind
+bind_options_config_file: /etc/bind/named.conf.options
+bind_zones_config_file: named.zones.conf
+bind_zones_dir: /var/lib/bind

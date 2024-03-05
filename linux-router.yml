@@ -32,3 +32,4 @@
     - base
     - linux_router
     - kea
+    - bind
