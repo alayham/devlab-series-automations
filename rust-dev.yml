@@ -1,0 +1,33 @@
+---
+- name: Recreate the devenv
+  hosts: localhost
+  vars_files:
+    - vars/devlab-pve.yml
+    - vaults/vault.yml
+    - vars/rust-dev.yml
+  roles:
+    - role: pve_purge
+      when: recreate is defined and recreate
+    - role: pve_lxc_create
+      when: recreate is defined and recreate
+
+- name: Enable ssh
+  hosts: devlab_pve
+  vars_files:
+    - vars/devlab-pve.yml
+    - vars/rust-dev.yml
+  roles:
+    - role: pve_lxc_enable_sshd
+      when: "recreate and 'fedora' in (pve_lxc_ostemplate | default(''))"
+
+- name: Configure the devenv
+  hosts: rust_dev
+  vars_files:
+    - vaults/vault.yml
+    - vars/rust-dev.yml
+  roles:
+    - role: base
+      when: recreate is defined and recreate
+    - role: rust
+      vars:
+        ansible_user: '{{ dev_user_name }}'
