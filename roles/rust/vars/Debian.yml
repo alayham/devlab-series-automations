@@ -1,0 +1,2 @@
+rust_install_packages:
+  - 'build-essential'

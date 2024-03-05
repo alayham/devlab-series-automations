@@ -1,0 +1,33 @@
+---
+- name: Include Redhat variables
+  ansible.builtin.include_vars: Redhat.yml
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Include Debian variables
+  ansible.builtin.include_vars: Debian.yml
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install the required development packages
+  ansible.builtin.package:
+    name: '{{ item }}'
+  loop: '{{ rust_install_packages }}'
+  vars:
+    ansible_become: true
+
+- name: Download the installer
+  ansible.builtin.get_url:
+    url: https://sh.rustup.rs
+    dest: /tmp/rust-setup.sh
+    mode: u=rwx,g=rx,o=rx
+
+- name: Run the installer
+  ansible.builtin.command:
+    cmd: '/tmp/rust-setup.sh -y'
+    chdir: '~'
+    creates: '~/.cargo'
+
+- name: Clone the projects
+  ansible.builtin.include_tasks: git_clone.yml
+  loop: '{{ rust_git_projects }}'
+  loop_control:
+    loop_var: project
