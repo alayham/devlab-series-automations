@@ -1,0 +1,20 @@
+recreate: false
+vmid: 150
+hostname: rust-dev
+# pve_lxc_ostemplate: 'local:vztmpl/fedora-39-default_20231118_amd64.tar.xz'
+pve_lxc_networks:
+  net0: "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1,hwaddr=12:00:00:00:01:50"
+pve_lxc_cores: 4
+pve_lxc_disk: 8
+pve_lxc_memory: 4096
+
+base_ssh_public_keys:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJnJ07MwmeJ++RS3JaPmZ2OjRHzbn/UmA9cVV3GK7WQE devlab@devlab-desktop
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOJVqUbvrJyOzi6UKuRxAhuhecXiIM/9d6h9IVRnsr3N root@ansible
+
+rust_git_projects:
+  - repo_url: https://github.com/dustinblackman/oatmeal.git
+    branch: main
+    dest: oatmeal
+    snippets:
+      '/home/dev/oatmeal/config.toml': https://gitlab.devlab/external/devlab-series-snippets/-/snippets/5/raw/main/config.toml

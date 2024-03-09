@@ -1,0 +1,3 @@
+rust_install_packages:
+  - '@Development Tools'
+  - '@C Development Tools and Libraries'
