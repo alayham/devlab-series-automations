@@ -1,6 +1,6 @@
 recreate: false
 vmid: 100
-hostname: gitlab-ce
+hostname: gitlab
 pve_lxc_ostemplate: 'local:vztmpl/almalinux-9-default_20221108_amd64.tar.xz'
 pve_lxc_cores: 4
 pve_lxc_memory: 8096
