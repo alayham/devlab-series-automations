@@ -28,6 +28,10 @@ kea_dhcp4_config:
     interfaces:
       - eth100
   reservations-global: true
+  dhcp-ddns:
+    enable-updates: true
+  ddns-qualifying-suffix: devlab
+  ddns-override-client-update: true
   subnet4:
     - id: 1
       subnet: 192.168.100.0/24
@@ -39,9 +43,43 @@ kea_dhcp4_config:
         - name: routers
           data: 192.168.100.1
           always-send: true
+        - name: domain-search
+          data: devlab
+          always-send: true
       match-client-id: false
       pools:
         - pool: 192.168.100.20-192.168.100.50
+kea_ddns_config:
+  ip-address: 127.0.0.1
+  port: 53001
+  control-socket:
+    socket-type: unix
+    socket-name: /run/kea/kea-ddns-ctrl-socket
+  tsig-keys:
+    - name: devlab
+      algorithm: HMAC-SHA256
+      secret: "DEVLAB_TSIG_KEY"
+  forward-ddns:
+    ddns-domains:
+      - name: devlab.
+        key-name: devlab
+        dns-servers:
+          - ip-address: 127.0.0.1
+  reverse-ddns: 
+    ddns-domains:
+      - name: 100.168.192.in-addr.arpa.
+        key-name: devlab
+        dns-servers:
+          - ip-address: 127.0.0.1
+  loggers:
+    - name: kea-dhcp-ddns
+      output_options:
+        - output: syslog
+          pattern: "%-5p %m\n"
+          maxsize: 1048576
+          maxver: 8
+      severity: INFO
+      debuglevel: 0
 
 base_dev_user: false
 base_ansible_user: false
