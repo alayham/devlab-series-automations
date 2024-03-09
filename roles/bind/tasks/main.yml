@@ -12,6 +12,11 @@
     name: '{{ item }}'
   loop: '{{ bind_package_names }}'
 
+- name: Generate a new transaction signature key
+  ansible.builtin.raw: tsig-keygen -a hmac-sha256 devlab | grep secret | awk '{print $2}' | sed -e s/\;// -e s/\"//g
+  register: bind_tsig_key
+  changed_when: true
+
 - name: Listen on IPv4
   ansible.builtin.lineinfile:
     path: '{{ bind_options_config_file }}'
@@ -22,6 +27,7 @@
     'listen-on ': '    listen-on port 53 { 127.0.0.1; 192.168.100.1; };'
     'allow-query ': '    allow-query { localhost; 192.168.100.0/24; };'
     'allow-recursion ': '    allow-recursion { localhost; 192.168.100.0/24; };'
+    'allow-update ': '    allow-update { localhost; };'
 
 - name: Create the zone files
   ansible.builtin.template:
