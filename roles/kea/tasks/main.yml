@@ -34,8 +34,23 @@
     line: '        <?include "/etc/kea/reservations4.conf" ?>'
     insertafter: '    "Dhcp4": {'
 
+- name: Copy DDNS options
+  ansible.builtin.template:
+    src: kea-dhcp-ddns.conf.j2
+    dest: '/etc/kea/kea-dhcp-ddns.conf'
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+
+- name: Inject the tsig key for dynamic updates
+  ansible.builtin.lineinfile:
+    line: '                "secret": "{{ bind_tsig_key.stdout_lines[0] }}"'
+    path: '/etc/kea/kea-dhcp-ddns.conf'
+    search_string: '                "secret": "DEVLAB_TSIG_KEY"'
+
 - name: Restart KEA
   ansible.builtin.service:
-    name: '{{ kea_dhcp4_service_name }}'
+    name: '{{ item }}'
     state: restarted
     enabled: true
+  loop: '{{ kea_dhcp4_service_names }}'
