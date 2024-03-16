@@ -1,10 +1,25 @@
 // {{ ansible_managed }}
+key "devlab" {
+    algorithm hmac-sha256;
+    secret "{{ bind_tsig_key.stdout_lines[0] }}";
+};
+key "rndc-key" {
+    algorithm hmac-sha256;
+    secret "{{ bind_rndc_key.stdout_lines[0] }}";
+};
+
+controls {
+  inet 127.0.0.1 allow { 127.0.0.1; } keys { "devlab"; "rndc-key";};
+};
 {% for zone in bind_zones %}
 zone "{{ zone.name }}" {
     type master;
     file "{{ bind_zones_dir }}/{{ zone.name }}.conf";
     dnssec-policy default;
     inline-signing yes;
+    update-policy {
+        grant devlab wildcard *.{{ zone.name }}. A PTR DHCID;
+    };
 };
 
 {% endfor %}

@@ -31,5 +31,5 @@
   roles:
     - base
     - linux_router
-    - kea
     - bind
+    - kea

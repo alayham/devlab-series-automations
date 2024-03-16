@@ -1,3 +1,6 @@
 kea_install_packages:
   - kea-dhcp4-server
-kea_dhcp4_service_name: kea-dhcp4-server
+  - kea-dhcp-ddns-server
+kea_dhcp4_service_names:
+  - kea-dhcp4-server
+  - kea-dhcp-ddns-server
