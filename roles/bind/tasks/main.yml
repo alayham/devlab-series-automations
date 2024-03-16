@@ -17,6 +17,29 @@
   register: bind_tsig_key
   changed_when: true
 
+
+- name: Try to sync all temporary updates to the zone files
+  ansible.builtin.raw: rndc sync -clean
+  changed_when: false
+  failed_when: false
+
+- name: Generate a new transaction signature key for rndc
+  ansible.builtin.raw: tsig-keygen -a hmac-sha256 devlab | grep secret | awk '{print $2}' | sed -e s/\;// -e s/\"//g
+  register: bind_rndc_key
+  changed_when: true
+
+- name: Save the rndc key
+  ansible.builtin.copy:
+    content: >
+      key "rndc-key" {
+        algorithm hmac-sha256;
+        secret "{{ bind_rndc_key.stdout_lines[0] }}";
+      };
+    dest: '{{ bind_config_dir }}/rndc.key'
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=
+
 - name: Listen on IPv4
   ansible.builtin.lineinfile:
     path: '{{ bind_options_config_file }}'
@@ -25,17 +48,12 @@
     insertafter: 'options {'
   with_dict:
     'listen-on ': '    listen-on port 53 { 127.0.0.1; 192.168.100.1; };'
-    'allow-query ': '    allow-query { localhost; 192.168.100.0/24; };'
+    'allow-query ': '    allow-query { localhost; 192.168.100.0/24; 10.10.0.0/16; 192.168.1.0/24; };'
     'allow-recursion ': '    allow-recursion { localhost; 192.168.100.0/24; };'
     'allow-update ': '    allow-update { localhost; };'
 
-- name: Create the zone files
-  ansible.builtin.template:
-    src: zone.conf.j2
-    dest: '{{ bind_zones_dir }}/{{ zone.name }}.conf'
-    owner: root
-    group: root
-    mode: u=rw,g=rw,o=r
+- name: Create or update the zone files
+  ansible.builtin.include_tasks: 'zone.yml'
   loop: '{{ bind_zones }}'
   loop_control:
     loop_var: 'zone'
@@ -61,3 +79,11 @@
     name: named
     enabled: true
     state: restarted
+
+# - name: Try to sync all temporary updates to the zone files
+#   ansible.builtin.raw: rndc sync -clean
+#   changed_when: true
+
+# - name: Try to reload all zones
+#   ansible.builtin.raw: rndc reload
+#   changed_when: true

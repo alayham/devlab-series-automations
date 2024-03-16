@@ -1,0 +1,38 @@
+# Do not overwrite existing zone files.
+- name: Check the template file.
+  ansible.builtin.stat:
+    path: '{{ bind_zones_dir }}/{{ zone.name }}.conf'
+  register: zone_file
+
+# - name: Extract results
+#   ansible.builtin.set_fact:
+#     extracted: '{{ extracted | default({}) | combine({item.zone.name: item.stat.exists}) }}'
+#   loop: '{{ zone_file.results }}'
+
+# When the zone file is missing, recreate it.
+- name: Create the zone files
+  ansible.builtin.template:
+    src: zone.conf.j2
+    dest: '{{ bind_zones_dir }}/{{ zone.name }}.conf'
+    owner: root
+    group: root
+    mode: u=rw,g=rw,o=r
+  when: not zone_file.stat.exists
+
+# When the zone file exists, make sure all static reservations are there.
+- name: Insert missing static reservations
+  ansible.builtin.lineinfile:
+    line: "{{ record.name }} {{ record.type }} {{ record.priority | default('') }} {{ record.target }}"
+    path: '{{ bind_zones_dir }}/{{ zone.name }}.conf'
+    regexp: "{{ record.name }}.+{{ record.type }}.+{{ record.target }}"
+  loop: '{{ zone.records }}'
+  loop_control:
+    loop_var: 'record'
+  when: zone_file.stat.exists
+
+- name: Update zone serials
+  ansible.builtin.lineinfile:
+    line: "           {{ 2024030101 | random }} ; serial"
+    path: '{{ bind_zones_dir }}/{{ zone.name }}.conf'
+    regexp: " ; serial"
+  when: zone_file.stat.exists

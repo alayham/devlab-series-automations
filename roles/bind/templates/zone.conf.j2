@@ -1,5 +1,4 @@
-;;; // {{ ansible_managed }}
-$TTL 8h
+$TTL 2400	; 40 minutes
 @ IN SOA {{ zone.name }}. hostmaster.{{ hostname }}. (
                           {{ 2024030101 | random }} ; serial number
                           1d         ; refresh period
@@ -11,5 +10,5 @@ $TTL 8h
 ;
 ; Host records
 {% for record in zone.records %}
-{{ record.name }} IN {{ record.type }} {{ record.priority | default('')}} {{ record.target }}
+{{ record.name }} {{ record.type }} {{ record.priority | default('') }} {{ record.target }}
 {% endfor %}

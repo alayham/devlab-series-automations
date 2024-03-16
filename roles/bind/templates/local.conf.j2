@@ -3,8 +3,13 @@ key "devlab" {
     algorithm hmac-sha256;
     secret "{{ bind_tsig_key.stdout_lines[0] }}";
 };
+key "rndc-key" {
+    algorithm hmac-sha256;
+    secret "{{ bind_rndc_key.stdout_lines[0] }}";
+};
+
 controls {
-  inet 127.0.0.1 allow { 127.0.0.1; } keys { "devlab"; };
+  inet 127.0.0.1 allow { 127.0.0.1; } keys { "devlab"; "rndc-key";};
 };
 {% for zone in bind_zones %}
 zone "{{ zone.name }}" {
