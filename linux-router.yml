@@ -33,3 +33,4 @@
     - linux_router
     - bind
     - kea
+    - wireguard
