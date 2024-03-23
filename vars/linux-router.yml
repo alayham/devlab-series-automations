@@ -115,6 +115,22 @@ bind_zones:
       - type: A
         name: swarm
         target: 192.168.100.143
+# The following are used for testing incremental updates.
+      # - type: A
+      #   name: swarm-manager
+      #   target: 192.168.100.131
+      # - type: A
+      #   name: swarm-manager
+      #   target: 192.168.100.132
+      # - type: A
+      #   name: swarm-worker
+      #   target: 192.168.100.141
+      # - type: A
+      #   name: swarm-worker
+      #   target: 192.168.100.142
+      # - type: A
+      #   name: swarm-worker
+      #   target: 192.168.100.143
 
   - name: 100.168.192.in-addr.arpa
     records:
@@ -124,3 +140,60 @@ bind_zones:
       - type: PTR
         name: 99
         target: devlab.devlab
+
+wireguard_router:
+  wg_interface_name: wg0
+  lan_interface_name: eth100
+  ip_addresses: 
+    - 10.10.10.1
+    - 10.10.15.1
+  port: 51823
+  dns_server: 192.168.100.1
+  tables:
+    - name: wg-service-test
+      chains:
+        - name: wg-service-test-access
+          destinations:
+            - ip: 192.168.100.121
+              protocol: tcp
+              ports:
+                - 80
+                - 81
+                - 82
+                - 443
+            - ip: 192.168.100.125
+              protocol: tcp
+              ports:
+                - 80
+                - 81
+                - 443
+            - ip: 192.168.100.1
+              protocol: udp
+              ports:
+                - 53
+
+    - name: wg-admin
+      chains:
+        - name: wg-admin-access
+          destinations:
+            - ip: 192.168.100.0/24
+              protocol: tcp
+              ports:
+                - '*'
+            - ip: 192.168.100.0/24
+              protocol: udp
+              ports:
+                - '*'
+  peers:
+    - comment: Admin dektop
+      ip: 10.10.10.10
+      public_key: zX9YlxOt5xpt91lpd51Kl33ZAIJPWH7TIpR5RFGy1Eo=
+      allowed_ips: 10.10.10.10/32
+      table: wg-admin
+      chain: wg-admin-access
+    - comment: test machine
+      ip: 10.10.15.3
+      public_key: ymKzr6V41MuSt4wqBiBRPPEM9Aamr4WyJjfyOZkcoH4=
+      allowed_ips: 10.10.15.3/32
+      table: wg-service-test
+      chain: wg-service-test-access
