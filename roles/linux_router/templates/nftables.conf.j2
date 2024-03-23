@@ -1,0 +1,98 @@
+# Based on https://wiki.nftables.org/wiki-nftables/index.php/Simple_ruleset_for_a_home_router
+flush ruleset
+
+define LAN_INTERFACE = {{ linux_router_lan_interfaces | join(', ') }}
+define WAN_INTERFACE = {{ linux_router_wan_interfaces | join(', ') }}
+
+table inet global {
+    chain inbound_wan {
+{% if linux_router_accept_incoming | default(false) %}
+        # allow connections from some well-known host
+{% for incoming in linux_router_accept_incoming %}
+        {% if incoming.only_from | default(false) %}{{'ip' if incoming.only_from | ansible.utils.ipv4 else 'ip6' }} saddr { {{ incoming.only_from }} } {% endif %}{{ incoming.protocol }} dport { {{ incoming.local_ports | join(', ') }} } counter accept
+{% endfor %}
+{% endif %}
+{% if linux_router_port_forward | default(false) %}        
+        # allow port forwarding
+{% for incoming in linux_router_port_forward %}
+        {% if incoming.only_from | default(false) %}{{'ip' if incoming.only_from | ansible.utils.ipv4 else 'ip6' }} saddr { {{ incoming.only_from }} } {% endif %}{{ incoming.protocol }} dport { {{ incoming.local_port }} } counter accept
+{% endfor %}
+{% endif %}
+    }
+
+    chain inbound_lan {
+        # allow DHCP, DNS and SSH from the private network
+        tcp dport { 22, 53 } counter accept
+        udp dport { 53, 67 } counter accept
+    }
+
+    chain inbound {
+        type filter hook input priority filter + 10;
+
+        # Drop new packets that are not syn
+        tcp flags & (fin|syn|rst|ack) != syn ct state { new } drop
+
+{% if linux_router_accept_ping %}
+        # Allow ping for diagnostic purposes.      
+        icmp type echo-request limit rate 5/second accept
+        icmpv6 type { echo-request } limit rate 5/second accept
+{% endif %}
+
+        # Allow traffic from established and related packets, drop invalid
+        ct state vmap { established : accept, related : accept, invalid : drop }
+
+        # Allow ICMP packets that are needed for IPv6
+        icmpv6 type { nd-neighbor-solicit,  nd-router-advert,  nd-neighbor-advert } limit rate 5/second accept
+
+        # allow loopback traffic, anything else jump to chain for further evaluation
+        iifname lo  accept
+        iifname { $WAN_INTERFACE } counter jump inbound_wan
+        iifname { $LAN_INTERFACE } counter jump inbound_lan
+        counter drop
+    }
+
+    chain forward {
+        type filter hook forward priority filter + 15;
+
+        # Allow traffic from established and related packets, drop invalid
+        ct state vmap { established : accept, related : accept, invalid : drop }
+
+{% if linux_router_no_wan_access | default(false) %}        
+        # Prevent some lan hosts from wan access (IOT/printers, etc)
+{% for ip in linux_router_no_wan_access %}
+        iifname { $LAN_INTERFACE } {{'ip' if ip | ansible.utils.ipv4 else 'ip6' }} saddr { {{ ip }} } counter drop
+{% endfor %}
+{% endif %}
+
+        # Allow everything coming from the LAN
+        iifname { $LAN_INTERFACE } counter accept
+    }
+
+    chain port_forward {
+        type nat hook prerouting priority dstnat + 10;
+
+        # Drop new packets that are not syn
+        tcp flags & (fin|syn|rst|ack) != syn ct state { new } drop
+
+{% if linux_router_port_forward | default(false) %}
+        # Port forwarding
+{% for incoming in linux_router_port_forward %}
+        iif { $WAN_INTERFACE } {{ incoming.protocol }} dport {{ incoming.local_port }} dnat {{'ip' if incoming.lan_host | ansible.utils.ipv4 else 'ip6' }} to {{ incoming.lan_host }}:{{ incoming.lan_port }}
+{% endfor %}
+{% endif %}
+    }
+
+    chain post_routing {
+        type nat hook postrouting priority srcnat + 10;
+
+        # masquerade lan-to-wan connections
+        iifname { $LAN_INTERFACE } oifname { $WAN_INTERFACE } counter masquerade
+    }
+
+    chain output_filter {
+        type filter hook output priority filter + 40;
+
+        # Do not send any invalid packet.
+        ct state invalid  drop
+    }
+}

@@ -23,8 +23,8 @@
     net.ipv4.conf.all.rp_filter: 1
 
 - name: Copy nftables configuration file for Debian
-  ansible.builtin.copy:
-    src: nftables.conf
+  ansible.builtin.template:
+    src: nftables.conf.j2
     dest: '{{ linux_router_nftables_config }}'
     owner: root
     group: root
