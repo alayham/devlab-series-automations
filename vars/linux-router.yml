@@ -20,6 +20,25 @@ linux_router_static_reservations:
     ip: '99'
   - mac: '12:00:00:00:00:95'
     ip: '95'
+linux_router_lan_interfaces:
+  - eth100
+linux_router_wan_interfaces:
+  - eth0
+linux_router_accept_ping: true
+linux_router_accept_incoming:
+  - protocol: tcp
+    local_ports: [22]
+    only_from: 192.168.1.0/24
+  - protocol: udp
+    local_ports: [51823]
+linux_router_port_forward:
+  - protocol: tcp
+    lan_host: 192.168.100.99
+    lan_port: 8006
+    local_port: 8006
+    only_from: 192.168.1.20
+linux_router_no_wan_access:
+  - 192.168.100.121
 
 kea_dhcp4_config:
   multi-threading:
@@ -65,7 +84,7 @@ kea_ddns_config:
         key-name: devlab
         dns-servers:
           - ip-address: 127.0.0.1
-  reverse-ddns: 
+  reverse-ddns:
     ddns-domains:
       - name: 100.168.192.in-addr.arpa.
         key-name: devlab
@@ -144,7 +163,8 @@ bind_zones:
 wireguard_router:
   wg_interface_name: wg0
   lan_interface_name: eth100
-  ip_addresses: 
+  wan_interface_name: eth0
+  ip_addresses:
     - 10.10.10.1
     - 10.10.15.1
   port: 51823
