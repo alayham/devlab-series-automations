@@ -9,7 +9,7 @@ DNS = {{ wireguard_router.dns_server }}
 # Create a nat table
 PreUp = if [ "$(nft list tables | grep wg-nat)" != "" ]; then  nft delete table inet wg-nat; fi
 PreUp = nft create table inet wg-nat 
-PreUp = nft chain inet wg-nat main "{type nat hook postrouting priority 0; }"
+PreUp = nft chain inet wg-nat main "{type nat hook postrouting priority srcnat; }"
 
 # Begin creating the destination tables
 {% for table in wireguard_router.tables %}
@@ -20,22 +20,23 @@ PreUp = nft create table inet {{ table.name }}
 PreUp = nft chain inet  {{ table.name }} {{ chain.name }}
     # Begin destinations rules i the chain {{ chain.name }}
 {% for destination in chain.destinations %}
-PreUp = nft rule inet {{ table.name }} {{ chain.name }} "oif {{ destination.Interface | default(wireguard_router.lan_interface_name) }} {{ 'ip' if (destination.ip | ansible.utils.ipv4) else 'ip6' }} daddr { {{ destination.ip }} } {{ destination.protocol }} dport { {{ destination.ports | join(',') }} } counter accept"
+PreUp = nft rule inet {{ table.name }} {{ chain.name }} "oifname {{ destination.Interface | default(wireguard_router.lan_interface_name) }} {{ 'ip' if (destination.ip | ansible.utils.ipv4) else 'ip6' }} daddr { {{ destination.ip }} } {{ destination.protocol }} dport { {{ destination.ports | join(',') }} } accept"
 {% endfor %}
-PreUp = nft rule inet {{ table.name }} {{ chain.name }} "oif {{ wireguard_router.lan_interface_name }} drop"
+PreUp = nft rule inet {{ table.name }} {{ chain.name }} "oifname {{ wireguard_router.lan_interface_name }} drop"
+PreUp = nft rule inet {{ table.name }} {{ chain.name }} "icmp type echo-request limit rate 5/second accept"
     # End destinations rules in the chain {{ chain.name }}
 {% endfor %}
   # End create chains in the table {{ table.name }}
-PreUp = nft chain inet {{ table.name }} main "{type filter hook forward priority 0;}"
+PreUp = nft chain inet {{ table.name }} main "{type filter hook forward priority filter;}"
 {% endfor %}
 # End creating the destination tables
 
 # Activate nat and masquerade
-PostUp = nft rule inet wg-nat main "iif {{ wireguard_router.wg_interface_name }} oif {{ wireguard_router.lan_interface_name }} masquerade"
+PostUp = nft rule inet wg-nat main "iifname {{ wireguard_router.wg_interface_name }} oifname {{ wireguard_router.lan_interface_name }} masquerade"
 
 # Create peer rules
 {% for peer in wireguard_router.peers %}
-PostUp = nft rule inet {{ peer.table }} main "iif {{ wireguard_router.wg_interface_name }} {{ 'ip' if (peer.ip | ansible.utils.ipv4) else 'ip6' }} saddr { {{ peer.ip }} } counter jump {{ peer.chain }}" # {{ peer.comment }}
+PostUp = nft rule inet {{ peer.table }} main "iifname {{ wireguard_router.wg_interface_name }} {{ 'ip' if (peer.ip | ansible.utils.ipv4) else 'ip6' }} saddr { {{ peer.ip }} } counter jump {{ peer.chain }}" # {{ peer.comment }}
 {% endfor %}
 
 # Cleanup before shutting down.
