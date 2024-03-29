@@ -1,5 +1,7 @@
 recreate: false
 vmid: 222
+pve_lxc_memory: 2048
+pve_lxc_cores: 2
 # pve_lxc_ostemplate: 'local:vztmpl/fedora-39-default_20231118_amd64.tar.xz'
 hostname: linux-router.devlab
 pve_lxc_networks:
@@ -10,6 +12,8 @@ linux_router_mac_prefix: '12:00:00:00'
 linux_router_ip_prefix: '192.168.100'
 linux_router_reservation_start: 100
 linux_router_reservation_end: 254
+
+linux_router_panic_mode: true
 
 linux_router_static_reservations:
   - mac: '12:00:00:00:00:10'
