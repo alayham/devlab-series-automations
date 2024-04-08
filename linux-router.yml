@@ -30,6 +30,7 @@
     - vars/linux-router.yml
   roles:
     - base
+    - suricata
     - linux_router
     - bind
     - kea

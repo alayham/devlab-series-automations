@@ -1,0 +1,23 @@
+---
+- name: Backup current rules
+  ansible.builtin.copy:
+    remote_src: true
+    src: /etc/suricata/rules/suricata.rules
+    dest: /etc/suricata/rules/rules-backup.rules
+    mode: u=rw,g=r,o=r
+
+- name: Panic mode
+  ansible.builtin.replace:
+    path: /etc/suricata/rules/suricata.rules
+    regexp: '^alert'
+    replace: 'drop'
+
+- name: Start Suricata in user space nfqueue mode
+  ansible.builtin.lineinfile:
+    path: /lib/systemd/system/suricata.service
+    line: 'ExecStart=/usr/bin/suricata -D -q 0 -c /etc/suricata/suricata.yaml --pidfile /run/suricata.pid'
+    search_string: 'ExecStart=/usr/bin/suricata'
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true

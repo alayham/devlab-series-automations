@@ -1,0 +1,32 @@
+---
+- name: Install packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+  loop:
+    - suricata
+    - jq
+
+- name: Enable suricata rules providers
+  ansible.builtin.raw: "suricata-update enable-source {{ item }}"
+  changed_when: true
+  loop:
+    - et/open
+    - oisf/trafficid
+    - etnetera/aggressive
+    - sslbl/ssl-fp-blacklist
+    - malsilo/win-malware
+    - sslbl/ja3-fingerprints
+
+- name: Update rules
+  ansible.builtin.raw: "suricata-update -o /etc/suricata/rules"
+  changed_when: true
+
+- name: Panic mode
+  ansible.builtin.include_tasks: panic.yml
+  when: linux_router_panic_mode
+
+- name: Enable suricata
+  ansible.builtin.service:
+    name: suricata
+    enabled: true
+    state: restarted

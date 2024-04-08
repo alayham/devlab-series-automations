@@ -32,6 +32,13 @@ table inet global {
         # Drop new packets that are not syn
         tcp flags & (fin|syn|rst|ack) != syn ct state { new } drop
 
+        # Drop invalid packets
+        ct state invalid counter drop
+
+{% if linux_router_panic_mode %}
+        jump intrusion_prevention_suricata
+{% endif %}
+
 {% if linux_router_accept_ping %}
         # Allow ping for diagnostic purposes.      
         icmp type echo-request limit rate 5/second accept
@@ -53,6 +60,12 @@ table inet global {
 
     chain forward {
         type filter hook forward priority filter + 15;
+
+        # Drop invalid packets
+        ct state invalid counter drop
+{% if linux_router_panic_mode %}
+        jump intrusion_prevention_suricata
+{% endif %}
 
         # Allow traffic from established and related packets, drop invalid
         ct state vmap { established : accept, related : accept, invalid : drop }
@@ -95,4 +108,9 @@ table inet global {
         # Do not send any invalid packet.
         ct state invalid  drop
     }
+{% if linux_router_panic_mode %}
+    chain intrusion_prevention_suricata {
+        counter queue num 0 bypass
+    }
+{% endif %}
 }
